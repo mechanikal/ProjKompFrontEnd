@@ -1,0 +1,79 @@
+import { useState, useEffect } from "react";
+import { BlockData, getGridSnappedPosition } from "../utils/ClassBlockUtils";
+import { GridProps } from "../utils/TimeGridUtils";
+
+type BlockProps = {
+  handleDrop: (blockId: number, x: number, y: number, hourSpan: number) => {x: number, y: number};
+  handlePickup: (blockId: number, hourSpan: number) => void;
+  blockData: BlockData;
+  gridProps: GridProps;
+};
+
+export default function Block({
+  blockData: { id: blockId, col, row, subrow, x, y, hourSpan, color, text },
+  gridProps: { gridWidth, gridHeight, cols, rows, rowHeights, StartPoint },
+  handleDrop,
+  handlePickup
+
+}: BlockProps) {
+  const [position, setPosition] = useState({ x: x, y: y });
+  const [isDragging, setIsDragging] = useState(false);
+  const cellSize = { x: gridWidth /cols, y: gridHeight / rows };
+
+  // Update position when block data changes
+  useEffect(() => {
+    setPosition({ x: x, y: y });
+  }, [x, y, col, row]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    const startX = e.clientX - position.x;
+    const startY = e.clientY - position.y;
+    const handleMouseMove = (e: MouseEvent) => {
+      setPosition({
+        x: e.clientX - startX,
+        y: e.clientY - startY,
+      });
+    };
+    const handleMouseUp = (e: MouseEvent) => {
+      setIsDragging(false);
+      const finalX = e.clientX - startX;
+      const finalY = e.clientY - startY;
+      
+      handlePickup(blockId, hourSpan);
+      setPosition(handleDrop(blockId, finalX, finalY, hourSpan));
+      
+
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  };
+
+  return (
+    <div
+      onMouseDown={handleMouseDown}
+      style={{
+        width: cellSize.x * hourSpan,
+        height: cellSize.y,
+        backgroundColor: color,
+        color: "white",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        position: "absolute",
+        left: position.x,
+        top: position.y,
+        cursor: isDragging ? "grabbing" : "grab",
+        borderRadius: 8,
+        userSelect: "none",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+        transition: isDragging ? "none" : "box-shadow 0.2s",
+      }}
+      >
+      {text}
+    </div>
+  );
+}
