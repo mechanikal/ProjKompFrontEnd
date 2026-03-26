@@ -42,6 +42,7 @@ export function recalculateBlockPostions(blocksData: BlockData[], gridProps: Gri
 }
 
 export function recalculateBlockSubrows(blocksData: BlockData[]) {
+    console.log("Recalculating block subrows based on overlaps:", blocksData);
     let newBlocksData = blocksData.map(block => ({ ...block, subrow: 0 }));
     
     for (let i = 0; i < newBlocksData.length; i++) {
@@ -50,12 +51,28 @@ export function recalculateBlockSubrows(blocksData: BlockData[]) {
             if (i <= j) continue;
             const otherBlock = newBlocksData[j];
 
-            if (isOverlapping(block, otherBlock)) {
-                block.subrow = Math.max(block.subrow, otherBlock.subrow + 1);
+            if (isOverlapping(block, otherBlock) && block.subrow == otherBlock.subrow) {
+                block.subrow = findFirstAvailableSubrow(newBlocksData, block.row, block.col, block.hourSpan);
             }
         }
     }
     return newBlocksData;
+}
+
+export function findFirstAvailableSubrow(blocksData: BlockData[], targetRow: number, targetCol: number, hourSpan: number) {
+    let subrow = 0;
+    while (true) {
+        const overlapping = blocksData.some(block => {
+            if (block.row !== targetRow || block.subrow !== subrow) return false;
+            const blockStart = block.col;
+            const blockEnd = block.col + block.hourSpan;
+            const targetStart = targetCol;
+            const targetEnd = targetCol + hourSpan;
+            return targetStart < blockEnd && blockStart < targetEnd;
+        });
+        if (!overlapping) return subrow;
+        subrow++;
+    }
 }
 
 export const getGridSnappedPosition = (x: number, y: number, hourSpan: number, gridProps: GridProps) => {

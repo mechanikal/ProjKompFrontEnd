@@ -27,6 +27,15 @@ export function recalculateOccupiedCells(blocksData: BlockData[], gridProps: Gri
     return newOccupied;
 }
 
+export function recalculateRowHeights(blocksData: BlockData[],gridProps: GridProps) {
+    let rowHeights = Array(gridProps.rows).fill(1);
+    blocksData.forEach(block => {
+        rowHeights[block.row] = Math.max(rowHeights[block.row], block.subrow + 1);
+    });
+    return rowHeights;
+}
+
+
 export function getCellIndex(x: number, y: number, gridProps: GridProps) {
     
     console.log("x and y are now:", x, y);

@@ -52,11 +52,20 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
                 const maxOccupied = Math.max(...occupiedCells.slice(row * cols, (row + 1) * cols));
                 newHeights[row] = Math.max(1, maxOccupied);
             }
+            
             return newHeights;
+
         });
     }, [occupiedCells, rows, cols]);
 
     useEffect(() => {
+        setBlocksData(prev=>{
+            console.log("sorting");
+            const newBlocks = [...prev];
+            // newBlocks.sort((a,b) => (b.hourSpan - a.hourSpan));
+            newBlocks.sort((a,b) => (b.col - a.col));
+            return newBlocks;
+        });
         setBlocksData(prev => recalculateBlockSubrows(prev));
         setBlocksData(prev => recalculateBlockPostions(prev, currentGridProps));
     }, [occupiedCells, rowHeights]);
@@ -83,7 +92,11 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
         setOccupiedCells(recalculateOccupiedCells(newBlocksData, currentGridProps));
         const recalculatedBlocks = recalculateBlockPostions(newBlocksData, currentGridProps);
         setBlocksData(recalculatedBlocks);
-        return { x: recalculatedBlocks[blockId].x, y: recalculatedBlocks[blockId].y };
+        const updatedBlock = recalculatedBlocks.find(b => b.id === blockId);
+        if (!updatedBlock){
+            return {x:0,y:0}
+        }
+        return { x: updatedBlock.x, y: updatedBlock.y };
     }
 
     return (
