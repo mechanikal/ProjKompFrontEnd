@@ -60,10 +60,13 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
 
     useEffect(() => {
         setBlocksData(prev=>{
-            console.log("sorting");
             const newBlocks = [...prev];
-            // newBlocks.sort((a,b) => (b.hourSpan - a.hourSpan));
-            newBlocks.sort((a,b) => (b.col - a.col));
+            newBlocks.sort((a,b) =>{
+                if (a.col == b.col){
+                    return (b.hourSpan - a.hourSpan)
+                }
+                return (a.col - b.col);
+            });
             return newBlocks;
         });
         setBlocksData(prev => recalculateBlockSubrows(prev));
