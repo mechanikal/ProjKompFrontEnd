@@ -90,8 +90,9 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
     }
 
     const handleBlockDrop = (blockId: number, newX: number, newY: number, hourSpan: number) => {
-        const snappedPos = getGridSnappedPosition(newX + (cellSize.x / 2), newY + (cellSize.y / 2), hourSpan, currentGridProps);
+        const snappedPos = getGridSnappedPosition(newX, newY, hourSpan, currentGridProps);
         const newBlocksData = updateBlockPosition(blocksData, blockId, snappedPos.x, snappedPos.y, currentGridProps);
+        console.log("blocksData",newBlocksData)
         setOccupiedCells(recalculateOccupiedCells(newBlocksData, currentGridProps));
         const recalculatedBlocks = recalculateBlockPostions(newBlocksData, currentGridProps);
         setBlocksData(recalculatedBlocks);

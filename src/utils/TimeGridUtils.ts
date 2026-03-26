@@ -37,27 +37,25 @@ export function recalculateRowHeights(blocksData: BlockData[],gridProps: GridPro
 
 
 export function getCellIndex(x: number, y: number, gridProps: GridProps) {
-    
-    console.log("x and y are now:", x, y);
+    console.log("x,y: ",x,y)
     let row = 0;
     let col;
     let sumY = 0;
     const cellSize = { x: gridProps.gridWidth / gridProps.cols, y: gridProps.gridHeight / gridProps.rows };
-    console.log("x and y are now:", x, y);
     y -= gridProps.StartPoint.y;
     x -= gridProps.StartPoint.x;
-    console.log("x and y are now:", x, y);
-    console.log("rowHeights:", gridProps.rowHeights.length);
+    console.log("x,y after startpoit: ",x,y)
+    console.log("cellsize: ",cellSize)
     for (let i = 0; i < gridProps.rowHeights.length; i++) {
        sumY += gridProps.rowHeights[i]*cellSize.y;
-       console.log("i =", i, "y:", y, "sumY:", sumY);
         if (y < sumY) {
             row = i;
             break;
         }
     }
-    col = Math.max(0, Math.min(Math.floor(x / cellSize.x), gridProps.cols - 1));
-    console.log("Calculated cell index:", { row, col });
+    console.log("x/size:",x/cellSize.x)
+    col = Math.max(0, Math.min(Math.round(x / cellSize.x), gridProps.cols - 1));
+    console.log("row,col",row,col)
     return {row, col};
 }
 

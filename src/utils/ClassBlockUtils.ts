@@ -23,7 +23,9 @@ function isOverlapping(blockA: BlockData, blockB: BlockData) {
 }
 
 export function updateBlockPosition(blocksData: BlockData[], blockId: number, newX: number, newY: number, gridProps: GridProps) {
+    console.log("new x,y: ",newX,newY)
     const cellIndex = getCellIndex(newX, newY, gridProps);
+    console.log("cell:",cellIndex)
     
     return blocksData.map(block => {
         if (block.id === blockId) {
@@ -34,7 +36,6 @@ export function updateBlockPosition(blocksData: BlockData[], blockId: number, ne
 }
 
 export function recalculateBlockPostions(blocksData: BlockData[], gridProps: GridProps) {
-    console.log("Recalculating block positions with gridProps:", blocksData);
     return blocksData.map(block => {
         const cellPosition = getCellPosition(block.row, block.col, gridProps);
         return { ...block, x: cellPosition.x, y: cellPosition.y + (block.subrow * gridProps.gridHeight / gridProps.rows) };
@@ -42,7 +43,6 @@ export function recalculateBlockPostions(blocksData: BlockData[], gridProps: Gri
 }
 
 export function recalculateBlockSubrows(blocksData: BlockData[]) {
-    console.log("Recalculating block subrows based on overlaps:", blocksData);
     let newBlocksData = blocksData.map(block => ({ ...block, subrow: 0 }));
     
     for (let i = 0; i < newBlocksData.length; i++) {
@@ -76,11 +76,13 @@ export function findFirstAvailableSubrow(blocksData: BlockData[], targetRow: num
 }
 
 export const getGridSnappedPosition = (x: number, y: number, hourSpan: number, gridProps: GridProps) => {
-        console.log("Snapping to grid. Input:", x, y);
+        console.log("x,y: ",x,y)
         const cellIndex = getCellIndex(x,y,gridProps);
-        console.log("x,y after snapping:", x, y, "Cell Index:", cellIndex);
+        console.log("cell: ",cellIndex)
         const overhang = Math.max(cellIndex.col + hourSpan - gridProps.cols, 0);
         cellIndex.col -= overhang;
+        console.log("cell: ",cellIndex)
         const cellPos = getCellPosition(cellIndex.row, cellIndex.col, gridProps);
+        console.log("cell: ",cellPos)
         return cellPos;
     };
