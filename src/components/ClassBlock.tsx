@@ -27,18 +27,18 @@ export default function Block({
 
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
-    const startX = e.clientX - position.x;
-    const startY = e.clientY - position.y;
+    const startX = e.pageX - position.x;
+    const startY = e.pageY - position.y;
     const handleMouseMove = (e: MouseEvent) => {
       setPosition({
-        x: e.clientX - startX,
-        y: e.clientY - startY,
+        x: e.pageX - startX,
+        y: e.pageY - startY,
       });
     };
     const handleMouseUp = (e: MouseEvent) => {
       setIsDragging(false);
-      const finalX = e.clientX - startX;
-      const finalY = e.clientY - startY;
+      const finalX = e.pageX - startX;
+      const finalY = e.pageY - startY;
       
       handlePickup(blockId, hourSpan);
       setPosition(handleDrop(blockId, finalX, finalY, hourSpan));

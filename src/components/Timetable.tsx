@@ -1,8 +1,8 @@
 import React, { useRef, useState, useEffect } from "react";
 import TimetableGrid from "./TimetableGrid";
 import ClassBlock from "./ClassBlock";
-import { BlockData, recalculateBlockPostions, recalculateBlockSubrows, getGridSnappedPosition, updateBlockPosition } from "../utils/ClassBlockUtils";
-import { recalculateOccupiedCells, GridProps } from "../utils/TimeGridUtils";
+import { BlockData, recalculateBlockPostions, recalculateBlockSubrows, getGridSnappedPosition, updateBlockPosition, removeBlock } from "../utils/ClassBlockUtils";
+import { recalculateOccupiedCells, GridProps, isBinArea } from "../utils/TimeGridUtils";
 import { jsonToBlockData, JsonData } from "../utils/JsonUtils";
 
 type TimetableProps = {
@@ -11,7 +11,7 @@ type TimetableProps = {
 };
 
 const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
-    const { rows, cols, gridHeight, gridWidth, StartPoint } = gridProps;
+    const { rows, cols, gridHeight, gridWidth, StartPoint ,Bin } = gridProps;
     const cellSize = { x: gridWidth / cols, y: gridHeight / rows };
     const [rowHeights, setRowHeights] = useState(Array(rows).fill(1));
     const [blocksData, setBlocksData] = useState<BlockData[]>([]);
@@ -90,7 +90,11 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
     }
 
     const handleBlockDrop = (blockId: number, newX: number, newY: number, hourSpan: number) => {
-        const snappedPos = getGridSnappedPosition(newX, newY, hourSpan, currentGridProps);
+        if (isBinArea(newX,newY,currentGridProps)){
+            setBlocksData(removeBlock(blocksData,blockId));
+            return {x: 0,y:0};
+        }
+        const snappedPos = getGridSnappedPosition(newX, newY + cellSize.y/2, hourSpan, currentGridProps);
         const newBlocksData = updateBlockPosition(blocksData, blockId, snappedPos.x, snappedPos.y, currentGridProps);
         console.log("blocksData",newBlocksData)
         setOccupiedCells(recalculateOccupiedCells(newBlocksData, currentGridProps));
@@ -105,7 +109,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
 
     return (
         <div style={{ position: "relative" }}>
-        <TimetableGrid rows={rows} cols={cols} gridHeight={gridHeight} gridWidth={gridWidth} rowHeights={rowHeights} StartPoint={StartPoint} />
+        <TimetableGrid rows={rows} cols={cols} gridHeight={gridHeight} gridWidth={gridWidth} rowHeights={rowHeights} StartPoint={StartPoint} Bin={Bin} />
         {blocksData.map((block) => (
             <ClassBlock
                 gridProps={gridProps}

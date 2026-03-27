@@ -22,6 +22,16 @@ function isOverlapping(blockA: BlockData, blockB: BlockData) {
     return aStart < bEnd && bStart < aEnd;
 }
 
+export function removeBlock(blocksData: BlockData[],blockID:number){
+    let newBlocksData = [...blocksData];
+    const index = blocksData.findIndex(block => block.id == blockID);
+    if (index < 0){
+        return blocksData;
+    }
+    newBlocksData.splice(index,1);
+    return newBlocksData;
+}
+
 export function updateBlockPosition(blocksData: BlockData[], blockId: number, newX: number, newY: number, gridProps: GridProps) {
     console.log("new x,y: ",newX,newY)
     const cellIndex = getCellIndex(newX, newY, gridProps);

@@ -6,6 +6,12 @@ export type CellPos = {
     col: number;
 };
 
+export type BinData = {
+    StartPoint: { x: number; y: number };
+    height: number;
+    width: number;
+}
+
 export type GridProps = {
     rows: number;
     cols: number;
@@ -13,6 +19,7 @@ export type GridProps = {
     gridWidth: number;
     rowHeights: number[];
     StartPoint: { x: number; y: number };
+    Bin: BinData;
 };
 
 export function recalculateOccupiedCells(blocksData: BlockData[], gridProps: GridProps) {
@@ -57,6 +64,18 @@ export function getCellIndex(x: number, y: number, gridProps: GridProps) {
     col = Math.max(0, Math.min(Math.round(x / cellSize.x), gridProps.cols - 1));
     console.log("row,col",row,col)
     return {row, col};
+}
+
+//todo: implement blocks bin
+export function isBinArea(x:number,y:number,gridProps:GridProps){
+    const binStartPoint = gridProps.Bin.StartPoint;
+    const binDim = {x:gridProps.Bin.width, y:gridProps.Bin.height}
+    if(x > binStartPoint.x && x < binStartPoint.x + binDim.x){
+        if(y > binStartPoint.y && y < binStartPoint.y + binDim.y){
+            return true;
+        }
+    }
+    return false;
 }
 
 export function getCellPosition(row: number, col: number, gridProps: GridProps) {

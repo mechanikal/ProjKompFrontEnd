@@ -2,12 +2,13 @@ import React, { useRef, useState } from "react";
 import { GridProps } from "../utils/TimeGridUtils";
 
 
-const TimetableGrid: React.FC<GridProps> = ({ rows, cols, gridHeight, gridWidth, rowHeights, StartPoint }) => {
+const TimetableGrid: React.FC<GridProps> = ({ rows, cols, gridHeight, gridWidth, rowHeights, StartPoint, Bin }) => {
   const cellSize = { x: gridWidth / cols, y: gridHeight / rows };
 
   const gridTemplateRows = rowHeights.map(height => `${height*cellSize.y}px`).join(' ');
-
+  console.log(Bin);
   return (
+    <div>
     <div
       style={{
         display: "grid",
@@ -32,6 +33,19 @@ const TimetableGrid: React.FC<GridProps> = ({ rows, cols, gridHeight, gridWidth,
          {(i%cols + 8)}
         </div>
       ))}
+    </div>
+    <div
+      style={{
+        position: "absolute",
+        width: Bin.width,
+        height: Bin.height,
+        backgroundColor: "blue",
+        left: Bin.StartPoint.x,
+        top: 1000,
+      }}
+      >
+      {"bin"}
+    </div>
     </div>
   );
 };
