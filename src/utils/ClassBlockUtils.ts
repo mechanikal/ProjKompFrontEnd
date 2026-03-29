@@ -13,7 +13,9 @@ export type BlockData = {
 };
 
 function isOverlapping(blockA: BlockData, blockB: BlockData) {
-    if (blockA.row !== blockB.row) return false;
+    if (blockA.row !== blockB.row || blockA.col == -1) {
+        return false;
+    }
     const aStart = blockA.col;
     const aEnd = blockA.col + blockA.hourSpan;
     const bStart = blockB.col;
@@ -33,9 +35,7 @@ export function removeBlock(blocksData: BlockData[],blockID:number){
 }
 
 export function updateBlockPosition(blocksData: BlockData[], blockId: number, newX: number, newY: number, gridProps: GridProps) {
-    console.log("new x,y: ",newX,newY)
     const cellIndex = getCellIndex(newX, newY, gridProps);
-    console.log("cell:",cellIndex)
     
     return blocksData.map(block => {
         if (block.id === blockId) {
@@ -86,13 +86,18 @@ export function findFirstAvailableSubrow(blocksData: BlockData[], targetRow: num
 }
 
 export const getGridSnappedPosition = (x: number, y: number, hourSpan: number, gridProps: GridProps) => {
-        console.log("x,y: ",x,y)
         const cellIndex = getCellIndex(x,y,gridProps);
-        console.log("cell: ",cellIndex)
         const overhang = Math.max(cellIndex.col + hourSpan - gridProps.cols, 0);
         cellIndex.col -= overhang;
-        console.log("cell: ",cellIndex)
         const cellPos = getCellPosition(cellIndex.row, cellIndex.col, gridProps);
-        console.log("cell: ",cellPos)
         return cellPos;
     };
+
+export function findAvailableIndex(blocksData: BlockData[]){
+    const indexes = blocksData.map(block=>block.id);
+    let i = 0;
+    while (indexes.includes(i)){
+        i++;
+    }
+    return i;
+}

@@ -6,7 +6,6 @@ const TimetableGrid: React.FC<GridProps> = ({ rows, cols, gridHeight, gridWidth,
   const cellSize = { x: gridWidth / cols, y: gridHeight / rows };
 
   const gridTemplateRows = rowHeights.map(height => `${height*cellSize.y}px`).join(' ');
-  console.log(Bin);
   return (
     <div>
     <div
@@ -41,7 +40,7 @@ const TimetableGrid: React.FC<GridProps> = ({ rows, cols, gridHeight, gridWidth,
         height: Bin.height,
         backgroundColor: "blue",
         left: Bin.StartPoint.x,
-        top: 1000,
+        top: Bin.StartPoint.y,
       }}
       >
       {"bin"}

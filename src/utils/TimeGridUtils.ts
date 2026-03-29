@@ -1,4 +1,5 @@
 import { BlockData } from "./ClassBlockUtils";
+import { getNewBlockPosition } from "./NewBlockUtils";
 
 
 export type CellPos = {
@@ -26,6 +27,9 @@ export function recalculateOccupiedCells(blocksData: BlockData[], gridProps: Gri
     const newOccupied = Array(gridProps.rows * gridProps.cols).fill(0);
     blocksData.forEach(block => {
         for (let i = 0; i < block.hourSpan; i++) {
+            if(block.col == -1 || block.row == -1){
+                continue;
+            }
             const index = block.row * gridProps.cols + block.col + i;
             newOccupied[index] += 1;
         }
@@ -44,30 +48,33 @@ export function recalculateRowHeights(blocksData: BlockData[],gridProps: GridPro
 
 
 export function getCellIndex(x: number, y: number, gridProps: GridProps) {
-    console.log("x,y: ",x,y)
+    console.log("getting cell index for position:", {x,y});
     let row = 0;
     let col;
     let sumY = 0;
     const cellSize = { x: gridProps.gridWidth / gridProps.cols, y: gridProps.gridHeight / gridProps.rows };
     y -= gridProps.StartPoint.y;
     x -= gridProps.StartPoint.x;
-    console.log("x,y after startpoit: ",x,y)
-    console.log("cellsize: ",cellSize)
     for (let i = 0; i < gridProps.rowHeights.length; i++) {
-       sumY += gridProps.rowHeights[i]*cellSize.y;
+        sumY += gridProps.rowHeights[i]*cellSize.y;
         if (y < sumY) {
-            row = i;
             break;
         }
+        row ++;
     }
-    console.log("x/size:",x/cellSize.x)
+    if (row >= gridProps.rows){
+         row = gridProps.rows - 1;
+        };
     col = Math.max(0, Math.min(Math.round(x / cellSize.x), gridProps.cols - 1));
-    console.log("row,col",row,col)
     return {row, col};
 }
-
+export function calculateHeight(rowheights: number[]) {
+    return rowheights.reduce((sum, height) => sum + height, 0);
+}
 //todo: implement blocks bin
 export function isBinArea(x:number,y:number,gridProps:GridProps){
+    console.log("checking bin area for position:", {x,y});
+    console.log("bin area:", gridProps.Bin);
     const binStartPoint = gridProps.Bin.StartPoint;
     const binDim = {x:gridProps.Bin.width, y:gridProps.Bin.height}
     if(x > binStartPoint.x && x < binStartPoint.x + binDim.x){
@@ -82,7 +89,10 @@ export function getCellPosition(row: number, col: number, gridProps: GridProps) 
     const cellSize = { x: gridProps.gridWidth / gridProps.cols, y: gridProps.gridHeight / gridProps.rows };
     let y = 0;
     let x = col * cellSize.x;
-        
+    
+    if (row == -1 ||col == -1){ // blank block
+        return { x: getNewBlockPosition(gridProps.Bin).x, y: getNewBlockPosition(gridProps.Bin).y };
+    }
 
     for (let i = 0; i < row; i++) {
         y += gridProps.rowHeights[i]*cellSize.y;

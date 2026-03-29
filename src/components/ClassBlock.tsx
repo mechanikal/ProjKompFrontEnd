@@ -22,6 +22,8 @@ export default function Block({
 
   // Update position when block data changes
   useEffect(() => {
+    console.log("block data changed:", { col, row, subrow, x, y });
+    console.log("old position:", position);
     setPosition({ x: x, y: y });
   }, [x, y, col, row]);
 
@@ -56,6 +58,7 @@ export default function Block({
     <div
       onMouseDown={handleMouseDown}
       style={{
+        position: "absolute",
         width: cellSize.x * hourSpan,
         height: cellSize.y,
         backgroundColor: color,
@@ -63,7 +66,6 @@ export default function Block({
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        position: "absolute",
         left: position.x,
         top: position.y,
         cursor: isDragging ? "grabbing" : "grab",
@@ -71,6 +73,7 @@ export default function Block({
         userSelect: "none",
         boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
         transition: isDragging ? "none" : "box-shadow 0.2s",
+        fontSize: "10px"
       }}
       >
       {text}

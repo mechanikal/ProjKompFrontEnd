@@ -2,8 +2,10 @@ import React, { useRef, useState, useEffect } from "react";
 import TimetableGrid from "./TimetableGrid";
 import ClassBlock from "./ClassBlock";
 import { BlockData, recalculateBlockPostions, recalculateBlockSubrows, getGridSnappedPosition, updateBlockPosition, removeBlock } from "../utils/ClassBlockUtils";
-import { recalculateOccupiedCells, GridProps, isBinArea } from "../utils/TimeGridUtils";
+import { recalculateOccupiedCells, GridProps, isBinArea, calculateHeight } from "../utils/TimeGridUtils";
 import { jsonToBlockData, JsonData } from "../utils/JsonUtils";
+import { getNewBlockPosition, SpawnNewBlock } from "../utils/NewBlockUtils";
+import { isNewBlockPresent } from "../utils/NewBlockUtils";
 
 type TimetableProps = {
   gridProps: GridProps;
@@ -35,12 +37,11 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
                     block.id = index;
                     return { ...block, id: index };
                 });
-
-                setBlocksData(blocks);
+                
+                setBlocksData(SpawnNewBlock(blocks,currentGridProps.Bin));
                 setOccupiedCells(recalculateOccupiedCells(blocks, currentGridProps));
             })
             .catch(err => console.error(err));
-
     }, []);
 
     // recalculate propererties after block move
@@ -59,6 +60,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
     }, [occupiedCells, rows, cols]);
 
     useEffect(() => {
+        console.log("occupied cells changed:", occupiedCells);
         setBlocksData(prev=>{
             const newBlocks = [...prev];
             newBlocks.sort((a,b) =>{
@@ -71,6 +73,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
         });
         setBlocksData(prev => recalculateBlockSubrows(prev));
         setBlocksData(prev => recalculateBlockPostions(prev, currentGridProps));
+        gridProps.Bin.StartPoint.y = StartPoint.y + calculateHeight(rowHeights)*cellSize.y;
     }, [occupiedCells, rowHeights]);
 
     //block handlers
@@ -78,6 +81,9 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
     const handleBlockPickup = (blockId: number, hourSpan: number) => {
         const block = blocksData.find(b => b.id === blockId);
         if (!block) return;
+        if (block.col == -1 || block.row == -1){
+            setBlocksData(SpawnNewBlock(blocksData,currentGridProps.Bin));
+        }
 
         setOccupiedCells(prev => {
             const newArr = [...prev];
@@ -91,14 +97,22 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
 
     const handleBlockDrop = (blockId: number, newX: number, newY: number, hourSpan: number) => {
         if (isBinArea(newX,newY,currentGridProps)){
-            setBlocksData(removeBlock(blocksData,blockId));
-            return {x: 0,y:0};
+            console.log("binning block:",blockId);
+            var newData = removeBlock(blocksData,blockId);
+            if(!isNewBlockPresent(newData)){
+                newData = SpawnNewBlock(newData,currentGridProps.Bin);
+            }
+            setBlocksData(newData);
+            return {x: getNewBlockPosition(currentGridProps.Bin).x, y: getNewBlockPosition(currentGridProps.Bin).y};
         }
         const snappedPos = getGridSnappedPosition(newX, newY + cellSize.y/2, hourSpan, currentGridProps);
+        console.log("snapped pos:", snappedPos);
         const newBlocksData = updateBlockPosition(blocksData, blockId, snappedPos.x, snappedPos.y, currentGridProps);
-        console.log("blocksData",newBlocksData)
         setOccupiedCells(recalculateOccupiedCells(newBlocksData, currentGridProps));
-        const recalculatedBlocks = recalculateBlockPostions(newBlocksData, currentGridProps);
+        var recalculatedBlocks = recalculateBlockPostions(newBlocksData, currentGridProps);
+        if(!isNewBlockPresent(recalculatedBlocks)){
+            recalculatedBlocks = SpawnNewBlock(recalculatedBlocks,currentGridProps.Bin);
+        }
         setBlocksData(recalculatedBlocks);
         const updatedBlock = recalculatedBlocks.find(b => b.id === blockId);
         if (!updatedBlock){
