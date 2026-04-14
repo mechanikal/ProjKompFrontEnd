@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Block from "./components/ClassBlock";
 import Timetable from "./components/Timetable";
+import EditBar from "./components/EditBar";
 
 function App() {
   const gridProps = {

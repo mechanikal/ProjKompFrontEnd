@@ -6,6 +6,7 @@ import { recalculateOccupiedCells, GridProps, isBinArea, calculateHeight } from 
 import { jsonToBlockData, JsonData } from "../utils/JsonUtils";
 import { getNewBlockPosition, SpawnNewBlock } from "../utils/NewBlockUtils";
 import { isNewBlockPresent } from "../utils/NewBlockUtils";
+import EditBar from "./EditBar";
 
 type TimetableProps = {
   gridProps: GridProps;
@@ -20,6 +21,12 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
     const [occupiedCells, setOccupiedCells] = useState<number[]>(Array(rows * cols).fill(0));
 
     const currentGridProps = { ...gridProps, rowHeights };
+
+    const handleEditBlock = (updatedBlock: BlockData) => {
+        setBlocksData(prev =>
+            prev.map(b => (b.id === updatedBlock.id ? updatedBlock : b))
+        );
+    };
 
     // read blocks data from json file
     useEffect(() => {
@@ -133,6 +140,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
                 blockData={block}
             />
         ))}
+        <EditBar blockData = {blocksData[1]} onChange={handleEditBlock} ></EditBar>
         </div>
     );
 };
