@@ -13,6 +13,8 @@ export type BlockData = {
     text: string;
     note: string;
     extraInfo: string;
+    terms: number[];
+    termMode: "x1" | "x2";
     reference: string;
 };
 

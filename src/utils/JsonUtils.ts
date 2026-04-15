@@ -3,7 +3,7 @@ import { GridProps, getCellPosition } from "./TimeGridUtils";
 
 export type JsonData = {
     info: {
-        terms: unknown[],
+        terms: Array<number | "x1" | "x2">,
         extra: string,
         name: string,
     },
@@ -22,6 +22,26 @@ export type JsonRoot = {
 const LOCAL_STORAGE_KEY = "projkomp.timetable.json";
 const DEFAULT_TIMETABLE_NAME = "Lokalny plan";
 
+function normalizeTerms(terms: unknown): number[] {
+    if (!Array.isArray(terms)) {
+        return [];
+    }
+
+    const validTerms = terms
+        .filter((term): term is number => Number.isInteger(term) && term >= 1 && term <= 15)
+        .sort((a, b) => a - b);
+
+    return [...new Set(validTerms)];
+}
+
+function normalizeTermMode(terms: unknown): "x1" | "x2" {
+    if (!Array.isArray(terms)) {
+        return "x1";
+    }
+
+    return terms.includes("x2") ? "x2" : "x1";
+}
+
 export function jsonToBlockData(json: JsonData, gridProps: GridProps): BlockData {
     const col = json.start - 8;
     const row = json.day;
@@ -38,6 +58,8 @@ export function jsonToBlockData(json: JsonData, gridProps: GridProps): BlockData
         text: json.info.name,
         note: "",
         extraInfo: json.info.extra,
+        terms: normalizeTerms(json.info.terms),
+        termMode: normalizeTermMode(json.info.terms),
         reference: json.reference
     };
     return result;
@@ -107,7 +129,7 @@ export function saveBlocksAsJson(blocks: BlockData[], timetableName = DEFAULT_TI
 
         return {
             info: {
-                terms: [],
+                terms: [...block.terms, block.termMode],
                 extra: block.extraInfo,
                 name: block.text,
             },

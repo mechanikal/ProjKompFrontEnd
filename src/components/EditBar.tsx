@@ -8,6 +8,32 @@ import { InputTextarea } from "primereact/inputtextarea";
 import { BlockData } from "../utils/ClassBlockUtils";
 import { cloneBlockData, hasDraftChanges } from "../utils/EditBarUtils";
 
+const NUMBERED_TERMS = Array.from({ length: 15 }, (_, index) => index + 1);
+
+function findClosestSelectedTerm(selectedTerms: number[], targetTerm: number) {
+  let closest = selectedTerms[0];
+  let closestDistance = Math.abs(targetTerm - closest);
+
+  for (let index = 1; index < selectedTerms.length; index++) {
+    const candidate = selectedTerms[index];
+    const distance = Math.abs(targetTerm - candidate);
+
+    if (distance < closestDistance || (distance === closestDistance && candidate < closest)) {
+      closest = candidate;
+      closestDistance = distance;
+    }
+  }
+
+  return closest;
+}
+
+function buildRange(fromTerm: number, toTerm: number) {
+  const start = Math.min(fromTerm, toTerm);
+  const end = Math.max(fromTerm, toTerm);
+
+  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+}
+
 export type EditBarData = {
     blockData?: BlockData;
     onSave: (updated: BlockData, options?: { silent?: boolean }) => void;
@@ -72,6 +98,51 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onSave, onHide, onDelete })
     setIsEditing(false);
   };
 
+  const handleToggleNumberedTerm = (term: number) => {
+    if (disabled || !draft) {
+      return;
+    }
+
+    const isSelected = draft.terms.includes(term);
+    if (isSelected) {
+      const nextTerms = draft.terms.filter((value) => value !== term);
+      handleFieldChange("terms", nextTerms);
+      return;
+    }
+
+    if (draft.terms.length === 0) {
+      handleFieldChange("terms", [term]);
+      return;
+    }
+
+    const closestSelectedTerm = findClosestSelectedTerm(draft.terms, term);
+    const rangeToAdd = buildRange(closestSelectedTerm, term);
+    const nextTerms = [...new Set([...draft.terms, ...rangeToAdd])].sort((left, right) => left - right);
+
+    handleFieldChange("terms", nextTerms);
+  };
+
+  const handleToggleAllNumberedTerms = () => {
+    if (disabled || !draft) {
+      return;
+    }
+
+    const hasAllTerms = NUMBERED_TERMS.every((term) => draft.terms.includes(term));
+    handleFieldChange("terms", hasAllTerms ? [] : [...NUMBERED_TERMS]);
+  };
+
+  const handleTermModeChange = (mode: "x1" | "x2") => {
+    if (disabled || !draft || draft.termMode === mode) {
+      return;
+    }
+
+    handleFieldChange("termMode", mode);
+  };
+
+  const hasAllNumberedTermsSelected = draft
+    ? NUMBERED_TERMS.every((term) => draft.terms.includes(term))
+    : false;
+
   const currentInfo = draft
     ? [
         draft.extraInfo ? `${draft.extraInfo}` : null,
@@ -125,12 +196,45 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onSave, onHide, onDelete })
         <div className="editbar-field">
           <label>terminy</label>
           <div className="tt-term-grid">
-            {Array.from({ length: 15 }, (_, index) => (
-              <button key={index + 1} type="button" className="tt-term-cell">
-                {index === 14 ? "x1" : index + 1}
+            {NUMBERED_TERMS.map((term) => (
+              <button
+                key={term}
+                type="button"
+                className={`tt-term-cell ${draft?.terms.includes(term) ? "is-selected" : ""}`.trim()}
+                disabled={disabled}
+                aria-pressed={draft?.terms.includes(term) ?? false}
+                onClick={() => handleToggleNumberedTerm(term)}
+              >
+                {term}
               </button>
             ))}
-            <button type="button" className="tt-term-cell">x2</button>
+            <button
+              type="button"
+              className={`tt-term-cell tt-term-cell--all ${hasAllNumberedTermsSelected ? "is-selected" : ""}`.trim()}
+              disabled={disabled}
+              aria-pressed={hasAllNumberedTermsSelected}
+              onClick={handleToggleAllNumberedTerms}
+            >
+              *
+            </button>
+            <button
+              type="button"
+              className={`tt-term-cell tt-term-cell--mode ${draft?.termMode === "x1" ? "is-selected" : ""}`.trim()}
+              disabled={disabled}
+              aria-pressed={draft?.termMode === "x1"}
+              onClick={() => handleTermModeChange("x1")}
+            >
+              x1
+            </button>
+            <button
+              type="button"
+              className={`tt-term-cell tt-term-cell--mode ${draft?.termMode === "x2" ? "is-selected" : ""}`.trim()}
+              disabled={disabled}
+              aria-pressed={draft?.termMode === "x2"}
+              onClick={() => handleTermModeChange("x2")}
+            >
+              x2
+            </button>
           </div>
         </div>
 

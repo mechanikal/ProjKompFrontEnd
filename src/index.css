@@ -383,16 +383,70 @@ body {
 .tt-term-grid {
 	display: grid;
 	grid-template-columns: repeat(5, minmax(0, 1fr));
-	gap: 5px;
+	gap: 7px 8px;
 }
 
 .tt-term-cell {
-	height: 24px;
-	background: #2b3038;
-	border: 1px solid #3d4450;
-	color: #dae3f4;
+	position: relative;
+	height: 28px;
+	background: #252a32;
+	border: 1px solid #3a414c;
+	color: #e6edf8;
+	border-radius: 4px;
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.2px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: flex-start;
+	padding: 0 8px;
+	text-transform: lowercase;
+	transition: background 150ms ease, border-color 150ms ease, box-shadow 150ms ease, color 150ms ease;
+	cursor: pointer;
+}
+
+.tt-term-cell::after {
+	content: "";
+	margin-left: auto;
+	width: 14px;
+	height: 14px;
 	border-radius: 3px;
-	font-size: 11px;
+	border: 1px solid #4a5362;
+	background: #2f3640;
+	box-sizing: border-box;
+	transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.tt-term-cell.is-selected {
+	background: #2d3942;
+	border-color: #5f7082;
+	color: #f4f8ff;
+}
+
+.tt-term-cell.is-selected::after {
+	background: #7dc554;
+	border-color: #7dc554;
+	box-shadow: inset 0 0 0 2px rgba(16, 28, 14, 0.45);
+}
+
+.tt-term-cell:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 2px rgba(182, 224, 255, 0.6);
+}
+
+.tt-term-cell:disabled {
+	opacity: 0.55;
+	cursor: default;
+}
+
+.tt-term-cell:disabled::after {
+	border-color: #3f4653;
+	background: #2b313a;
+}
+
+.tt-term-cell--all,
+.tt-term-cell--mode {
+	text-transform: none;
 }
 
 .tt-color-row {

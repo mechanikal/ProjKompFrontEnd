@@ -19,6 +19,8 @@ export function SpawnNewBlock(blocksData:BlockData[],bin :BinData){
         text: "NEW CLASS",
         note: "",
         extraInfo: "",
+        terms: [],
+        termMode: "x1",
         reference: ""
     };
     newBlocksData.push(newBlock);
