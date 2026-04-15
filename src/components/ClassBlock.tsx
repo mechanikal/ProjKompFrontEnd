@@ -59,8 +59,8 @@ export default function Block({
       className="tt-class-block"
       style={{
         position: "absolute",
-        width: Math.max(1, Math.round(cellSize.x * hourSpan) - 1),
-        height: Math.max(1, Math.round(cellSize.y) - 1),
+        width: Math.max(1, Math.round(cellSize.x * hourSpan)),
+        height: Math.max(1, Math.round(cellSize.y)),
         backgroundColor: color,
         color: "#f4f8ff",
         display: "flex",
@@ -78,8 +78,9 @@ export default function Block({
         fontWeight: 600,
         letterSpacing: "0.2px",
         textAlign: "center",
-        padding: "2px 8px",
+        padding: "2px 6px",
         filter: isDragging ? "brightness(1.06)" : "none",
+        overflow: "hidden",
       }}
       >
       <span>{text}</span>

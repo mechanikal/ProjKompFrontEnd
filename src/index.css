@@ -227,11 +227,13 @@ body {
 .timetable-grid {
 	border: 1px solid #313741;
 	box-shadow: inset 0 0 0 1px #262c34;
+	box-sizing: border-box;
 }
 
 .timetable-cell {
 	background: var(--tt-cell);
 	border: 1px solid var(--tt-cell-border);
+	box-sizing: border-box;
 }
 
 .timetable-bin {

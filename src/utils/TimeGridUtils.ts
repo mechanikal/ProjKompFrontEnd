@@ -53,8 +53,9 @@ export function getCellIndex(x: number, y: number, gridProps: GridProps) {
     let col;
     let sumY = 0;
     const cellSize = { x: gridProps.gridWidth / gridProps.cols, y: gridProps.gridHeight / gridProps.rows };
-    y -= gridProps.StartPoint.y;
-    x -= gridProps.StartPoint.x;
+    // Coordinates are anchored to the inner edge of the grid border.
+    y -= gridProps.StartPoint.y + 1;
+    x -= gridProps.StartPoint.x + 1;
     for (let i = 0; i < gridProps.rowHeights.length; i++) {
         sumY += gridProps.rowHeights[i]*cellSize.y;
         if (y < sumY) {
@@ -104,5 +105,6 @@ export function getCellPosition(row: number, col: number, gridProps: GridProps) 
     for (let i = 0; i < row; i++) {
         y += gridProps.rowHeights[i]*cellSize.y;
     }
-    return { x: gridProps.StartPoint.x + x, y: gridProps.StartPoint.y + y };
+    // Place blocks at the same inner grid origin used by getCellIndex.
+    return { x: gridProps.StartPoint.x + x + 1, y: gridProps.StartPoint.y + y + 1 };
 }
