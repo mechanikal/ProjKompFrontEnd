@@ -59,8 +59,8 @@ export default function Block({
       className="tt-class-block"
       style={{
         position: "absolute",
-        width: cellSize.x * hourSpan,
-        height: cellSize.y,
+        width: cellSize.x * hourSpan - 4,
+        height: cellSize.y - 4,
         backgroundColor: color,
         color: "#f4f8ff",
         display: "flex",
@@ -69,7 +69,7 @@ export default function Block({
         alignItems: "center",
         left: position.x,
         top: position.y,
-        transform: "translate(2px, 2px)",
+        transform: "translate(3px, 3px)",
         cursor: isDragging ? "grabbing" : "grab",
         borderRadius: 4,
         userSelect: "none",
