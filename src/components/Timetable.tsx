@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import TimetableGrid from "./TimetableGrid";
 import ClassBlock from "./ClassBlock";
 import { BlockData, getGridSnappedPosition, updateBlockPosition, removeBlock, recalculateBlockPostions, recalculateBlockSubrows, sortBlocksByPlacement } from "../utils/ClassBlockUtils";
@@ -8,6 +8,10 @@ import { getNewBlockPosition, SpawnNewBlock } from "../utils/NewBlockUtils";
 import { isNewBlockPresent } from "../utils/NewBlockUtils";
 import EditBar from "./EditBar";
 import { buildCurrentGridProps } from "../utils/TimetableLayoutUtils";
+import { Toolbar } from "primereact/toolbar";
+import { Button } from "primereact/button";
+import { Toast } from "primereact/toast";
+import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 
 type TimetableProps = {
   gridProps: GridProps;
@@ -21,6 +25,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
     const [blocksData, setBlocksData] = useState<BlockData[]>([]);
     const [occupiedCells, setOccupiedCells] = useState<number[]>(Array(rows * cols).fill(0));
     const [selectedBlockId, setSelectedBlockId] = useState<number | null>(null);
+    const toast = useRef<Toast>(null);
 
     const currentGridProps = useMemo(() => buildCurrentGridProps(gridProps, rowHeights), [gridProps, rowHeights]);
     const selectedBlock = blocksData.find(b => b.id === selectedBlockId) || null;
@@ -40,6 +45,41 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
 
         setBlocksData(nextBlocks);
         setOccupiedCells(recalculateOccupiedCells(nextBlocks, currentGridProps));
+
+        toast.current?.show({
+            severity: "success",
+            summary: "Zapisano",
+            detail: `Zaktualizowano blok: ${updatedBlock.text}`,
+            life: 1400,
+        });
+    };
+
+    const deleteBlockById = (blockId: number) => {
+        let nextBlocks = removeBlock(blocksData, blockId);
+        if (!isNewBlockPresent(nextBlocks)) {
+            nextBlocks = SpawnNewBlock(nextBlocks, currentGridProps.Bin);
+        }
+
+        setBlocksData(sortBlocksByPlacement(nextBlocks));
+        setOccupiedCells(recalculateOccupiedCells(nextBlocks, currentGridProps));
+        setSelectedBlockId(null);
+
+        toast.current?.show({
+            severity: "warn",
+            summary: "Usunieto blok",
+            detail: `Blok #${blockId} zostal usuniety.`,
+            life: 1500,
+        });
+    };
+
+    const handleDeleteRequest = (blockId: number) => {
+        confirmDialog({
+            message: "Czy na pewno chcesz usunac ten blok?",
+            header: "Potwierdz usuniecie",
+            icon: "pi pi-exclamation-triangle",
+            acceptClassName: "p-button-danger",
+            accept: () => deleteBlockById(blockId),
+        });
     };
 
     // read blocks data from json file
@@ -97,6 +137,12 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
             setBlocksData(sortBlocksByPlacement(newData));
             setOccupiedCells(recalculateOccupiedCells(newData, currentGridProps));
             setSelectedBlockId(null);
+            toast.current?.show({
+                severity: "info",
+                summary: "Przeniesiono do kosza",
+                detail: `Blok #${blockId} trafil do binu.`,
+                life: 1200,
+            });
             return {x: getNewBlockPosition(currentGridProps.Bin).x, y: getNewBlockPosition(currentGridProps.Bin).y};
         }
         const snappedPos = getGridSnappedPosition(newX, newY + cellSize.y/2, hourSpan, currentGridProps);
@@ -110,8 +156,30 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
         return snappedPos;
     }
 
+    const placedBlocksCount = blocksData.filter(block => block.col !== -1 && block.row !== -1).length;
+
+    const leftToolbar = (
+        <div className="tt-toolbar-group">
+            <span className="tt-toolbar-title">Plan Zajec</span>
+            <span className="tt-toolbar-meta">Aktywne bloki: {placedBlocksCount}</span>
+        </div>
+    );
+
+    const rightToolbar = (
+        <Button
+            label="Zamknij Edytor"
+            icon="pi pi-times"
+            outlined
+            disabled={selectedBlockId == null}
+            onClick={() => setSelectedBlockId(null)}
+        />
+    );
+
     return (
-        <div style={{ position: "relative" }}>
+        <div className="tt-layout" style={{ position: "relative" }}>
+        <ConfirmDialog />
+        <Toast ref={toast} />
+        <Toolbar className="tt-toolbar" start={leftToolbar} end={rightToolbar} />
         <TimetableGrid rows={rows} cols={cols} gridHeight={gridHeight} gridWidth={gridWidth} rowHeights={rowHeights} StartPoint={currentGridProps.StartPoint} Bin={currentGridProps.Bin} />
         {blocksData.map((block) => (
             <ClassBlock
@@ -126,6 +194,8 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
             <EditBar
                 blockData={selectedBlock}
                 onChange={handleEditBlock}
+                onHide={() => setSelectedBlockId(null)}
+                onDelete={handleDeleteRequest}
             />
         )}
         </div>

@@ -1,5 +1,7 @@
 import React from "react";
 import { GridProps } from "../utils/TimeGridUtils";
+import { Card } from "primereact/card";
+import { Tag } from "primereact/tag";
 
 
 const TimetableGrid: React.FC<GridProps> = ({ rows, cols, gridHeight, gridWidth, rowHeights, StartPoint, Bin }) => {
@@ -7,8 +9,9 @@ const TimetableGrid: React.FC<GridProps> = ({ rows, cols, gridHeight, gridWidth,
 
   const gridTemplateRows = rowHeights.map(height => `${height*cellSize.y}px`).join(' ');
   return (
-    <div>
+    <div className="timetable-grid-wrap">
     <div
+      className="timetable-grid"
       style={{
         display: "grid",
         gridTemplateColumns: `repeat(${cols}, ${cellSize.x}px)`,
@@ -21,9 +24,8 @@ const TimetableGrid: React.FC<GridProps> = ({ rows, cols, gridHeight, gridWidth,
       {Array.from({ length: rows * cols }).map((_, i) => (
         <div
           key={i}
+          className="timetable-cell"
           style={{
-            backgroundColor: "lightgray",
-            border: "1px solid #999",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -33,18 +35,21 @@ const TimetableGrid: React.FC<GridProps> = ({ rows, cols, gridHeight, gridWidth,
         </div>
       ))}
     </div>
-    <div
+    <Card
+      className="timetable-bin"
+      title="Bin"
+      subTitle="Przenies tutaj, aby usunac"
       style={{
         position: "absolute",
         width: Bin.width,
-        height: Bin.height,
-        backgroundColor: "blue",
+        minHeight: Bin.height,
         left: Bin.StartPoint.x,
         top: Bin.StartPoint.y,
       }}
+      footer={<Tag value="Drop Zone" severity="danger" />}
       >
-      {"bin"}
-    </div>
+      <p>Upusc blok na ten obszar, aby usunac go z planu.</p>
+    </Card>
     </div>
   );
 };

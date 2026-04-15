@@ -1,0 +1,81 @@
+:root {
+	--tt-bg: #f5f8ff;
+	--tt-grid-cell: #ecf4ff;
+	--tt-grid-border: #b8cae8;
+	--tt-text-muted: #54667e;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+	width: 100%;
+	min-height: 100%;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+	background: radial-gradient(circle at top, #ffffff 0%, var(--tt-bg) 72%);
+}
+
+.tt-layout {
+	padding: 0.75rem;
+}
+
+.tt-toolbar {
+	margin-bottom: 0.8rem;
+}
+
+.tt-toolbar-group {
+	display: flex;
+	flex-direction: column;
+	gap: 0.15rem;
+}
+
+.tt-toolbar-title {
+	font-weight: 700;
+	font-size: 1.05rem;
+}
+
+.tt-toolbar-meta {
+	color: var(--tt-text-muted);
+	font-size: 0.85rem;
+}
+
+.timetable-grid-wrap {
+	position: relative;
+}
+
+.timetable-cell {
+	background-color: var(--tt-grid-cell);
+	border: 1px solid var(--tt-grid-border);
+	color: #29466f;
+	font-size: 0.8rem;
+}
+
+.timetable-bin .p-card-content {
+	padding-top: 0.2rem;
+}
+
+.editbar-form {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.editbar-field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+}
+
+.editbar-field-row {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0.75rem;
+}
