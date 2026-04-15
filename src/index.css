@@ -377,6 +377,7 @@ body {
 
 .tt-class-block {
 	border: 1px solid rgba(255, 255, 255, 0.18);
+	box-sizing: border-box;
 }
 
 .tt-class-sub {
