@@ -16,20 +16,54 @@ import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 
 type TimetableProps = {
   gridProps: GridProps;
+  onEditBarVisibilityChange?: (isVisible: boolean) => void;
   //todo: add initial blocks data as prop
 };
 
-const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
+const Timetable: React.FC<TimetableProps> = ({ gridProps, onEditBarVisibilityChange }) => {
     const { rows, cols, gridHeight, gridWidth } = gridProps;
     const cellSize = { x: gridWidth / cols, y: gridHeight / rows };
     const [rowHeights, setRowHeights] = useState(Array(rows).fill(1));
     const [blocksData, setBlocksData] = useState<BlockData[]>([]);
     const [occupiedCells, setOccupiedCells] = useState<number[]>(Array(rows * cols).fill(0));
     const [selectedBlockId, setSelectedBlockId] = useState<number | null>(null);
+    const rightPanelRef = useRef<HTMLElement | null>(null);
     const toast = useRef<Toast>(null);
 
     const currentGridProps = useMemo(() => buildCurrentGridProps(gridProps, rowHeights), [gridProps, rowHeights]);
     const selectedBlock = blocksData.find(b => b.id === selectedBlockId) || null;
+
+    useEffect(() => {
+        onEditBarVisibilityChange?.(selectedBlockId !== null);
+    }, [onEditBarVisibilityChange, selectedBlockId]);
+
+    useEffect(() => {
+        if (selectedBlockId === null) {
+            return;
+        }
+
+        const handleOutsideClick = (event: MouseEvent) => {
+            const target = event.target as HTMLElement | null;
+            if (!target) {
+                return;
+            }
+
+            if (
+                rightPanelRef.current?.contains(target) ||
+                target.closest(".tt-class-block") ||
+                target.closest(".p-colorpicker-panel") ||
+                target.closest(".p-connected-overlay")
+            ) {
+                return;
+            }
+
+            setSelectedBlockId(null);
+        };
+
+        document.addEventListener("mousedown", handleOutsideClick);
+
+        return () => document.removeEventListener("mousedown", handleOutsideClick);
+    }, [selectedBlockId]);
 
     useEffect(() => {
         setRowHeights(getRowHeightsFromOccupiedCells(occupiedCells, rows, cols));
@@ -134,6 +168,10 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
         setSelectedBlockId(blockId);
     }
 
+    const handleHideEditBar = () => {
+        setSelectedBlockId(null);
+    };
+
     const handleBlockDrop = (blockId: number, newX: number, newY: number, hourSpan: number) => {
         if (isBinArea(newX,newY,currentGridProps)){
             let newData = removeBlock(blocksData,blockId);
@@ -179,7 +217,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
         <ConfirmDialog />
         <Toast ref={toast} position="top-right" />
 
-        <div className="tt-surface">
+        <div className={`tt-surface ${selectedBlockId !== null ? "tt-surface--editbar-open" : "tt-surface--editbar-hidden"}`}>
             <section className="tt-left-panel">
                 <div className="tt-prompt-row">
                     <Button icon="pi pi-link" rounded text className="tt-icon-btn tt-prompt-link" />
@@ -233,11 +271,11 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
                 <div className="tt-active-count">Aktywne bloki: {placedBlocksCount}</div>
             </section>
 
-            <aside className="tt-right-panel">
+            <aside ref={rightPanelRef} className="tt-right-panel">
             <EditBar
                 blockData={selectedBlock}
                 onSave={handleEditBlock}
-                onHide={() => setSelectedBlockId(null)}
+                onHide={handleHideEditBar}
                 onDelete={handleDeleteRequest}
             />
             </aside>

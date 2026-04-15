@@ -33,8 +33,8 @@ body {
 }
 
 .tt-surface {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr) 252px;
+	display: flex;
+	align-items: stretch;
 	gap: 12px;
 }
 
@@ -46,11 +46,40 @@ body {
 }
 
 .tt-left-panel {
+	flex: 1 1 auto;
+	min-width: 0;
 	padding: 10px;
 }
 
 .tt-right-panel {
+	flex: 0 0 252px;
+	width: 252px;
+	max-width: 252px;
 	padding: 8px;
+	overflow: hidden;
+	transition:
+		flex-basis 240ms ease,
+		width 240ms ease,
+		max-width 240ms ease,
+		opacity 180ms ease,
+		transform 240ms ease,
+		padding 240ms ease,
+		border-color 240ms ease;
+	will-change: flex-basis, width, max-width, opacity, transform;
+}
+
+.tt-surface--editbar-hidden .tt-right-panel {
+	flex-basis: 0;
+	width: 0;
+	max-width: 0;
+	padding-left: 0;
+	padding-right: 0;
+	padding-top: 0;
+	padding-bottom: 0;
+	opacity: 0;
+	transform: translateX(18px);
+	pointer-events: none;
+	border-color: transparent;
 }
 
 .tt-prompt-row {
@@ -404,11 +433,22 @@ body {
 
 @media (max-width: 1280px) {
 	.tt-surface {
-		grid-template-columns: 1fr;
+		flex-direction: column;
 	}
 
 	.tt-right-panel {
+		flex: 0 0 auto;
 		max-width: 100%;
+		width: 100%;
+	}
+
+	.tt-surface--editbar-hidden .tt-right-panel {
+		max-height: 0;
+		opacity: 0;
+		transform: translateY(-12px);
+		padding-top: 0;
+		padding-bottom: 0;
+		border-color: transparent;
 	}
 
 	.tt-date-pill {

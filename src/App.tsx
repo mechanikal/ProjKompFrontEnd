@@ -28,7 +28,10 @@ function useWindowSize() {
 
 function App() {
   const { width, height } = useWindowSize();
-  const contentWidth = Math.min(980, Math.max(760, width * 0.72));
+  const [isEditBarVisible, setIsEditBarVisible] = useState(false);
+  const contentWidth = isEditBarVisible
+    ? Math.min(980, Math.max(760, width * 0.72))
+    : Math.min(1280, Math.max(760, width * 0.92));
   const CELL_WIDTH_BONUS = 17;
   const CELL_HEIGHT_BONUS = 5;
 
@@ -66,7 +69,10 @@ function App() {
       </header>
 
       <main className="app-main">
-        <Timetable gridProps={gridProps} />
+        <Timetable
+          gridProps={gridProps}
+          onEditBarVisibilityChange={setIsEditBarVisible}
+        />
       </main>
 
       <footer className="app-footer">
