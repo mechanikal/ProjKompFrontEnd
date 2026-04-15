@@ -3,7 +3,7 @@ import TimetableGrid from "./TimetableGrid";
 import ClassBlock from "./ClassBlock";
 import { BlockData, getGridSnappedPosition, updateBlockPosition, removeBlock, recalculateBlockPostions, recalculateBlockSubrows, sortBlocksByPlacement } from "../utils/ClassBlockUtils";
 import { recalculateOccupiedCells, GridProps, isBinArea, getRowHeightsFromOccupiedCells } from "../utils/TimeGridUtils";
-import { jsonToBlockData, JsonData } from "../utils/JsonUtils";
+import { jsonToBlockData, JsonData, loadJsonRoot, saveBlocksAsJson } from "../utils/JsonUtils";
 import { getNewBlockPosition, SpawnNewBlock } from "../utils/NewBlockUtils";
 import { isNewBlockPresent } from "../utils/NewBlockUtils";
 import EditBar from "./EditBar";
@@ -39,20 +39,33 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
         setBlocksData(prev => recalculateBlockPostions(recalculateBlockSubrows(sortBlocksByPlacement(prev)), currentGridProps));
     }, [currentGridProps]);
 
-    const handleEditBlock = (updatedBlock: BlockData) => {
+    const applyBlocksState = (nextBlocks: BlockData[], persist = true) => {
+        const sortedBlocks = sortBlocksByPlacement(nextBlocks);
+        setBlocksData(sortedBlocks);
+        setOccupiedCells(recalculateOccupiedCells(sortedBlocks, currentGridProps));
+
+        if (persist) {
+            saveBlocksAsJson(sortedBlocks);
+        }
+
+        return sortedBlocks;
+    };
+
+    const handleEditBlock = (updatedBlock: BlockData, options?: { silent?: boolean }) => {
         const nextBlocks = sortBlocksByPlacement(
             blocksData.map(b => (b.id === updatedBlock.id ? updatedBlock : b))
         );
 
-        setBlocksData(nextBlocks);
-        setOccupiedCells(recalculateOccupiedCells(nextBlocks, currentGridProps));
+        applyBlocksState(nextBlocks);
 
-        toast.current?.show({
-            severity: "success",
-            summary: "Zapisano",
-            detail: `Zaktualizowano blok: ${updatedBlock.text}`,
-            life: 1400,
-        });
+        if (!options?.silent) {
+            toast.current?.show({
+                severity: "success",
+                summary: "Zapisano",
+                detail: `Zaktualizowano blok: ${updatedBlock.text}`,
+                life: 1400,
+            });
+        }
     };
 
     const deleteBlockById = (blockId: number) => {
@@ -61,8 +74,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
             nextBlocks = SpawnNewBlock(nextBlocks, currentGridProps.Bin);
         }
 
-        setBlocksData(sortBlocksByPlacement(nextBlocks));
-        setOccupiedCells(recalculateOccupiedCells(nextBlocks, currentGridProps));
+        applyBlocksState(nextBlocks);
         setSelectedBlockId(null);
 
         toast.current?.show({
@@ -83,26 +95,19 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
         });
     };
 
-    // read blocks data from json file
+    // read blocks data from json/local storage
     useEffect(() => {
-        fetch('/6i-io1.json')
-            .then(res => res.json())
-            .then((json) => {
-                const classItems = Array.isArray(json)
-                    ? json
-                    : Array.isArray(json?.classes)
-                        ? json.classes
-                        : [];
+        loadJsonRoot()
+            .then((jsonRoot) => {
+                const classItems = Array.isArray(jsonRoot.classes) ? jsonRoot.classes : [];
 
                 const blocks = classItems.map((data: JsonData, index: number) => {
                     const block = jsonToBlockData(data, gridProps);
-                    block.id = index;
                     return { ...block, id: index };
                 });
 
                 const blocksWithBin = SpawnNewBlock(blocks, currentGridProps.Bin);
-                setBlocksData(sortBlocksByPlacement(blocksWithBin));
-                setOccupiedCells(recalculateOccupiedCells(blocksWithBin, currentGridProps));
+                applyBlocksState(blocksWithBin, false);
             })
             .catch(err => console.error(err));
             }, [gridProps]);
@@ -135,8 +140,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
             if(!isNewBlockPresent(newData)){
                 newData = SpawnNewBlock(newData,currentGridProps.Bin);
             }
-            setBlocksData(sortBlocksByPlacement(newData));
-            setOccupiedCells(recalculateOccupiedCells(newData, currentGridProps));
+            applyBlocksState(newData);
             setSelectedBlockId(null);
             toast.current?.show({
                 severity: "info",
@@ -148,12 +152,11 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
         }
         const snappedPos = getGridSnappedPosition(newX, newY + cellSize.y/2, hourSpan, currentGridProps);
         const newBlocksData = updateBlockPosition(blocksData, blockId, snappedPos.x, snappedPos.y, currentGridProps);
-        setOccupiedCells(recalculateOccupiedCells(newBlocksData, currentGridProps));
         let recalculatedBlocks = sortBlocksByPlacement(newBlocksData);
         if(!isNewBlockPresent(recalculatedBlocks)){
             recalculatedBlocks = SpawnNewBlock(recalculatedBlocks,currentGridProps.Bin);
         }
-        setBlocksData(recalculatedBlocks);
+        applyBlocksState(recalculatedBlocks);
         return snappedPos;
     }
 
@@ -233,7 +236,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
             <aside className="tt-right-panel">
             <EditBar
                 blockData={selectedBlock}
-                onChange={handleEditBlock}
+                onSave={handleEditBlock}
                 onHide={() => setSelectedBlockId(null)}
                 onDelete={handleDeleteRequest}
             />

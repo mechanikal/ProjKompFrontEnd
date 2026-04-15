@@ -11,6 +11,9 @@ export type BlockData = {
     hourSpan: number;
     color: string;
     text: string;
+    note: string;
+    extraInfo: string;
+    reference: string;
 };
 
 export function sortBlocksByPlacement(blocksData: BlockData[]) {

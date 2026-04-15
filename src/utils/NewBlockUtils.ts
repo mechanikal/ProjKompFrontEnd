@@ -16,7 +16,10 @@ export function SpawnNewBlock(blocksData:BlockData[],bin :BinData){
         y: getNewBlockPosition(bin).y,
         hourSpan: 2,
         color: "gray",
-        text: "NEW CLASS"
+        text: "NEW CLASS",
+        note: "",
+        extraInfo: "",
+        reference: ""
     };
     newBlocksData.push(newBlock);
     console.log("new blocks data:", newBlocksData);

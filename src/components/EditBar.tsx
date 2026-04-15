@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { InputText } from "primereact/inputtext";
 import { InputNumber } from "primereact/inputnumber";
 import { ColorPicker } from "primereact/colorpicker";
@@ -6,29 +6,77 @@ import { Button } from "primereact/button";
 import { Slider } from "primereact/slider";
 import { InputTextarea } from "primereact/inputtextarea";
 import { BlockData } from "../utils/ClassBlockUtils";
+import { cloneBlockData, hasDraftChanges } from "../utils/EditBarUtils";
 
 export type EditBarData = {
     blockData?: BlockData;
-    onChange: (updated: BlockData) => void;
+    onSave: (updated: BlockData, options?: { silent?: boolean }) => void;
     onHide: () => void;
     onDelete: (blockId: number) => void;
 };
 
 
-const EditBar: React.FC<EditBarData> = ({ blockData, onChange, onHide, onDelete }) => {
-  const currentBlock = blockData;
-  const disabled = !currentBlock;
+const EditBar: React.FC<EditBarData> = ({ blockData, onSave, onHide, onDelete }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState<BlockData | null>(cloneBlockData(blockData));
+  const previousIdRef = useRef<number | null>(blockData?.id ?? null);
+  const previousBlockRef = useRef<BlockData | null>(cloneBlockData(blockData));
+  const draftRef = useRef<BlockData | null>(cloneBlockData(blockData));
+
+  useEffect(() => {
+    draftRef.current = draft;
+  }, [draft]);
+
+  useEffect(() => {
+    const previousId = previousIdRef.current;
+    const nextId = blockData?.id ?? null;
+    const previousBlock = previousBlockRef.current;
+    const currentDraft = draftRef.current;
+
+    if (previousId !== nextId && previousBlock && currentDraft && hasDraftChanges(previousBlock, currentDraft)) {
+      onSave(currentDraft, { silent: true });
+    }
+
+    const cloned = cloneBlockData(blockData);
+    setDraft(cloned);
+    draftRef.current = cloned;
+    setIsEditing(false);
+    previousIdRef.current = nextId;
+    previousBlockRef.current = cloned;
+  }, [blockData, onSave]);
+
+  const disabled = !draft || !isEditing;
 
   const handleFieldChange = <K extends keyof BlockData>(key: K, value: BlockData[K]) => {
-    if (!currentBlock) {
+    if (!draft) {
       return;
     }
 
-    onChange({
-      ...currentBlock,
+    setDraft({
+      ...draft,
       [key]: value
     });
   };
+
+  const handleEditOrSave = () => {
+    if (!draft) {
+      return;
+    }
+
+    if (!isEditing) {
+      setIsEditing(true);
+      return;
+    }
+
+    onSave(draft);
+    setIsEditing(false);
+  };
+
+  const currentInfo = draft
+    ? [
+        draft.extraInfo ? `${draft.extraInfo}` : null,
+      ].filter(Boolean).join("\n")
+    : "";
 
   return (
     <div className="tt-edit-panel">
@@ -38,7 +86,7 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onChange, onHide, onDelete 
           <label htmlFor="block-name">Nazwa przedmiotu</label>
           <InputText
             id="block-name"
-            value={currentBlock?.text ?? ""}
+            value={draft?.text ?? ""}
             disabled={disabled}
             onChange={(e) => handleFieldChange("text", e.target.value)}
           />
@@ -48,7 +96,7 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onChange, onHide, onDelete 
           <label htmlFor="block-extra">informacje dodatkowe</label>
           <InputTextarea
             id="block-extra"
-            value={currentBlock ? `blok #${currentBlock.id}` : ""}
+            value={currentInfo}
             disabled
             rows={2}
             autoResize
@@ -56,16 +104,22 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onChange, onHide, onDelete 
         </div>
 
         <div className="editbar-field">
-          <label htmlFor="block-hours">dlugosc: {currentBlock?.hourSpan ?? "-"}</label>
+          <label htmlFor="block-hours">dlugosc: {draft?.hourSpan ?? "-"}</label>
           <InputNumber
             id="block-hours"
-            value={currentBlock?.hourSpan ?? 1}
+            value={draft?.hourSpan ?? 1}
             disabled={disabled}
             onValueChange={(e) => handleFieldChange("hourSpan", Math.max(1, e.value ?? 1))}
             min={1}
             max={12}
           />
-          <Slider value={currentBlock?.hourSpan ?? 1} min={1} max={12} disabled={disabled} />
+          <Slider
+            value={draft?.hourSpan ?? 1}
+            min={1}
+            max={12}
+            disabled={disabled}
+            onChange={(e) => handleFieldChange("hourSpan", Math.max(1, Number(e.value) || 1))}
+          />
         </div>
 
         <div className="editbar-field">
@@ -82,7 +136,13 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onChange, onHide, onDelete 
 
         <div className="editbar-field">
           <label htmlFor="block-note">notatka</label>
-          <InputTextarea id="block-note" rows={2} />
+          <InputTextarea
+            id="block-note"
+            rows={2}
+            value={draft?.note ?? ""}
+            disabled={disabled}
+            onChange={(e) => handleFieldChange("note", e.target.value)}
+          />
         </div>
 
         <div className="editbar-field tt-color-row">
@@ -90,14 +150,19 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onChange, onHide, onDelete 
           <ColorPicker
               id="block-color"
               format="hex"
-              value={(currentBlock?.color ?? "#5f9fd1").replace("#", "")}
+              value={(draft?.color ?? "#5f9fd1").replace("#", "")}
               disabled={disabled}
               onChange={(e) => handleFieldChange("color", `#${String(e.value)}`)}
             />
         </div>
 
         <div className="tt-edit-actions">
-          <Button label="edytuj" className="tt-edit-btn" disabled={disabled} />
+          <Button
+            label={isEditing ? "zapisz" : "edytuj"}
+            className="tt-edit-btn"
+            disabled={!draft}
+            onClick={handleEditOrSave}
+          />
           <Button icon="pi pi-replay" rounded outlined onClick={onHide} />
         </div>
 
@@ -106,8 +171,8 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onChange, onHide, onDelete 
             icon="pi pi-trash"
             severity="secondary"
             outlined
-            disabled={disabled}
-            onClick={() => currentBlock && onDelete(currentBlock.id)}
+            disabled={!draft}
+            onClick={() => draft && onDelete(draft.id)}
           />
           <Button label="NOWY BLOK" className="tt-new-block-btn" onClick={onHide} />
         </div>
