@@ -18,6 +18,8 @@ export default function Block({
 }: BlockProps) {
   const VISUAL_OFFSET_X = 8;
   const VISUAL_OFFSET_Y = 8;
+  const BLOCK_WIDTH_ADJUST = -4;
+  const BLOCK_HEIGHT_ADJUST = -4;
   const [position, setPosition] = useState({ x: x, y: y });
   const [isDragging, setIsDragging] = useState(false);
   const cellSize = { x: gridWidth /cols, y: gridHeight / rows };
@@ -61,8 +63,8 @@ export default function Block({
       className="tt-class-block"
       style={{
         position: "absolute",
-        width: Math.max(1, Math.round(cellSize.x * hourSpan)),
-        height: Math.max(1, Math.round(cellSize.y)),
+        width: Math.max(1, Math.round(cellSize.x * hourSpan) + BLOCK_WIDTH_ADJUST),
+        height: Math.max(1, Math.round(cellSize.y) + BLOCK_HEIGHT_ADJUST),
         backgroundColor: color,
         color: "#f4f8ff",
         display: "flex",
