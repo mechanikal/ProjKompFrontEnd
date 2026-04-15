@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import Timetable from "./components/Timetable";
+import footerLogo from "./assets/logo-pl.png";
 import "./App.css";
 
 function useWindowSize() {
@@ -69,11 +70,13 @@ function App() {
       </main>
 
       <footer className="app-footer">
-        <div className="app-footer-logo">P L</div>
+        <div className="app-footer-logo" aria-label="Logo Politechniki Łódzkiej">
+          <img className="app-footer-logo-image" src={footerLogo} alt="" aria-hidden="true" />
+        </div>
         <div className="app-footer-content">
           <p>Projekt kompetencyjny</p>
           <p>AI powered Class Plan for Lodz University of Technology</p>
-          <p>Wykonawcy: Kacper Orliwoszewski, Krzysztof Wojtal, Stanislaw Jaworski, Witold Struminski</p>
+          <p>Wykonawcy: Kacper Orkwiszewski, Krzysztof Wojtal, Stanislaw Jaworski, Witold Struminski</p>
         </div>
       </footer>
     </div>

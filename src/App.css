@@ -69,13 +69,19 @@
   height: 72px;
   border-radius: 50%;
   border: 2px solid #c6cfdb;
-  color: #f4f7fc;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 30px;
-  font-weight: 800;
-  letter-spacing: 2px;
+  background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+}
+
+.app-footer-logo-image {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  display: block;
+  filter: brightness(0) invert(1);
 }
 
 .app-footer-content p {
