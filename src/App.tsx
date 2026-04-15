@@ -28,14 +28,16 @@ function useWindowSize() {
 function App() {
   const { width, height } = useWindowSize();
   const contentWidth = Math.min(980, Math.max(760, width * 0.72));
+  const CELL_WIDTH_BONUS = 2;
+  const CELL_HEIGHT_BONUS = 2;
 
   // Keep grid math on integer pixels to avoid subpixel drift between cells and blocks.
   const rawGridWidth = contentWidth - 74;
-  const colWidth = Math.max(52, Math.floor(rawGridWidth / 12));
+  const colWidth = Math.max(52, Math.floor(rawGridWidth / 12) + CELL_WIDTH_BONUS);
   const gridWidth = colWidth * 12;
 
   const rawGridHeight = Math.min(420, Math.max(280, height * 0.42));
-  const rowHeight = Math.max(36, Math.floor(rawGridHeight / 7));
+  const rowHeight = Math.max(36, Math.floor(rawGridHeight / 7) + CELL_HEIGHT_BONUS);
   const gridHeight = rowHeight * 7;
 
   const gridProps = useMemo(() => ({
