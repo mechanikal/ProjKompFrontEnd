@@ -19,13 +19,28 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
     const [rowHeights, setRowHeights] = useState(Array(rows).fill(1));
     const [blocksData, setBlocksData] = useState<BlockData[]>([]);
     const [occupiedCells, setOccupiedCells] = useState<number[]>(Array(rows * cols).fill(0));
+    const [selectedBlockId, setSelectedBlockId] = useState<number | null>(null);
 
     const currentGridProps = { ...gridProps, rowHeights };
+    const selectedBlock = blocksData.find(b => b.id === selectedBlockId) || null;
 
     const handleEditBlock = (updatedBlock: BlockData) => {
         setBlocksData(prev =>
             prev.map(b => (b.id === updatedBlock.id ? updatedBlock : b))
         );
+        setBlocksData(prev=>{
+            const newBlocks = [...prev];
+            newBlocks.sort((a,b) =>{
+                if (a.col == b.col){
+                    return (b.hourSpan - a.hourSpan)
+                }
+                return (a.col - b.col);
+            });
+            return newBlocks;
+        });
+        setBlocksData(prev => recalculateBlockSubrows(prev));
+        setBlocksData(prev => recalculateBlockPostions(prev, currentGridProps));
+        gridProps.Bin.StartPoint.y = StartPoint.y + calculateHeight(rowHeights)*cellSize.y;
     };
 
     // read blocks data from json file
@@ -81,7 +96,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
         setBlocksData(prev => recalculateBlockSubrows(prev));
         setBlocksData(prev => recalculateBlockPostions(prev, currentGridProps));
         gridProps.Bin.StartPoint.y = StartPoint.y + calculateHeight(rowHeights)*cellSize.y;
-    }, [occupiedCells, rowHeights]);
+    }, [occupiedCells, rowHeights,gridProps]);
 
     //block handlers
 
@@ -100,6 +115,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
             }
             return newArr;
         });
+        setSelectedBlockId(blockId);
     }
 
     const handleBlockDrop = (blockId: number, newX: number, newY: number, hourSpan: number) => {
@@ -140,7 +156,12 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
                 blockData={block}
             />
         ))}
-        <EditBar blockData = {blocksData[1]} onChange={handleEditBlock} ></EditBar>
+        {selectedBlock != null && (
+            <EditBar
+                blockData={selectedBlock}
+                onChange={handleEditBlock}
+            />
+        )}
         </div>
     );
 };

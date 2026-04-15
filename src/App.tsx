@@ -2,13 +2,38 @@ import { useState } from "react";
 import Block from "./components/ClassBlock";
 import Timetable from "./components/Timetable";
 import EditBar from "./components/EditBar";
+import { useEffect} from "react";
+
+function useWindowSize() {
+  const [size, setSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return size;
+}
+
 
 function App() {
+  const {width, height} = useWindowSize();
   const gridProps = {
     rows: 7,
     cols: 12,
-    gridWidth: window.innerWidth * 0.75,
-    gridHeight: window.innerWidth * 0.75/2,
+    gridWidth: width * 0.70,
+    gridHeight: width * 0.20,
     rowHeights: [1, 1, 1, 1, 1, 1, 1],
     StartPoint: { x: 0, y: 0 },
     Bin: {
