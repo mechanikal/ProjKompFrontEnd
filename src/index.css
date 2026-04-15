@@ -163,6 +163,8 @@ body {
 	display: grid;
 	margin-bottom: 9px;
 	align-items: stretch;
+	transition: width 240ms ease, margin-left 240ms ease;
+	will-change: width, margin-left;
 }
 
 .tt-hour-pill {
@@ -184,6 +186,8 @@ body {
 	background: #1f2329;
 	padding: 6px;
 	overflow: hidden;
+	transition: width 240ms ease;
+	will-change: width;
 }
 
 .tt-bottom-row {
@@ -239,6 +243,11 @@ body {
 	display: grid;
 	grid-template-rows: repeat(7, minmax(0, 1fr));
 	gap: 0;
+	transition:
+		left 240ms ease,
+		height 240ms ease,
+		grid-template-rows 240ms ease;
+	will-change: left, height, grid-template-rows;
 }
 
 .timetable-day-pill {
@@ -258,6 +267,14 @@ body {
 	border: 1px solid #313741;
 	box-shadow: inset 0 0 0 1px #262c34;
 	box-sizing: border-box;
+	transition:
+		left 240ms ease,
+		top 240ms ease,
+		width 240ms ease,
+		height 240ms ease,
+		grid-template-columns 240ms ease,
+		grid-template-rows 240ms ease;
+	will-change: left, top, width, height, grid-template-columns, grid-template-rows;
 }
 
 .timetable-cell {
@@ -275,6 +292,12 @@ body {
 	align-items: center;
 	gap: 2px;
 	box-shadow: inset 0 0 0 1px #252a31;
+	transition:
+		left 240ms ease,
+		top 240ms ease,
+		width 240ms ease,
+		height 240ms ease;
+	will-change: left, top, width, height;
 }
 
 .timetable-bin-title {
@@ -409,6 +432,14 @@ body {
 .tt-class-block {
 	border: 1px solid rgba(255, 255, 255, 0.18);
 	box-sizing: border-box;
+	transition:
+		left 240ms ease,
+		top 240ms ease,
+		width 240ms ease,
+		height 240ms ease,
+		box-shadow 200ms ease,
+		filter 200ms ease;
+	will-change: left, top, width, height, transform;
 }
 
 .tt-class-sub {

@@ -77,7 +77,9 @@ export default function Block({
         borderRadius: 4,
         userSelect: "none",
         boxShadow: isDragging ? "0 0 0 1px rgba(255,255,255,0.35)" : "0 1px 10px rgba(0,0,0,0.35)",
-        transition: isDragging ? "none" : "box-shadow 0.2s, filter 0.2s",
+        transition: isDragging
+          ? "none"
+          : "left 240ms ease, top 240ms ease, width 240ms ease, height 240ms ease, box-shadow 200ms ease, filter 200ms ease",
         fontSize: "11px",
         fontWeight: 600,
         letterSpacing: "0.2px",
