@@ -1,55 +1,117 @@
-import React, { useRef, useState } from "react";
-import { GridProps } from "../utils/TimeGridUtils";
+import React from "react";
+import { InputText } from "primereact/inputtext";
+import { InputNumber } from "primereact/inputnumber";
+import { ColorPicker } from "primereact/colorpicker";
+import { Button } from "primereact/button";
+import { Slider } from "primereact/slider";
+import { InputTextarea } from "primereact/inputtextarea";
 import { BlockData } from "../utils/ClassBlockUtils";
 
 export type EditBarData = {
-    blockData?: BlockData
+    blockData?: BlockData;
     onChange: (updated: BlockData) => void;
-}
+    onHide: () => void;
+    onDelete: (blockId: number) => void;
+};
 
 
-const EditBar: React.FC<EditBarData> = ({blockData, onChange}) => {
-    
-  if (!blockData) return null
-  const [text, setText] = useState("");
-    const ignoredKeys: (keyof BlockData)[] = ["id", "x", "y","subrow"];
+const EditBar: React.FC<EditBarData> = ({ blockData, onChange, onHide, onDelete }) => {
+  const currentBlock = blockData;
+  const disabled = !currentBlock;
 
+  const handleFieldChange = <K extends keyof BlockData>(key: K, value: BlockData[K]) => {
+    if (!currentBlock) {
+      return;
+    }
 
-  const handleFieldChange = (key: keyof BlockData, value: any) => {
     onChange({
-      ...blockData,
+      ...currentBlock,
       [key]: value
     });
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        width: "20vw",
-        height: "100vh",
-        backgroundColor: "green",
-        right: 0,
-        top: 0,
-        padding: "10px"
-      }}
-    >
-      <p>edit bar</p>
+    <div className="tt-edit-panel">
+      <div className="tt-edit-header-line" />
+      <div className="editbar-form">
+        <div className="editbar-field">
+          <label htmlFor="block-name">Nazwa przedmiotu</label>
+          <InputText
+            id="block-name"
+            value={currentBlock?.text ?? ""}
+            disabled={disabled}
+            onChange={(e) => handleFieldChange("text", e.target.value)}
+          />
+        </div>
 
-      
-      {Object.entries(blockData)
-      .filter(([key]) => !ignoredKeys.includes(key as keyof BlockData))
-      .map(([key, value]) => (
-        <div key={key}>
-            {key}
-            <input
-            type="text"
-            value={value}
-            onChange={(e) => handleFieldChange(key as keyof BlockData, e.target.value)}
-            style={{ width: "100%" }}
+        <div className="editbar-field">
+          <label htmlFor="block-extra">informacje dodatkowe</label>
+          <InputTextarea
+            id="block-extra"
+            value={currentBlock ? `blok #${currentBlock.id}` : ""}
+            disabled
+            rows={2}
+            autoResize
+          />
+        </div>
+
+        <div className="editbar-field">
+          <label htmlFor="block-hours">dlugosc: {currentBlock?.hourSpan ?? "-"}</label>
+          <InputNumber
+            id="block-hours"
+            value={currentBlock?.hourSpan ?? 1}
+            disabled={disabled}
+            onValueChange={(e) => handleFieldChange("hourSpan", Math.max(1, e.value ?? 1))}
+            min={1}
+            max={12}
+          />
+          <Slider value={currentBlock?.hourSpan ?? 1} min={1} max={12} disabled={disabled} />
+        </div>
+
+        <div className="editbar-field">
+          <label>terminy</label>
+          <div className="tt-term-grid">
+            {Array.from({ length: 15 }, (_, index) => (
+              <button key={index + 1} type="button" className="tt-term-cell">
+                {index === 14 ? "x1" : index + 1}
+              </button>
+            ))}
+            <button type="button" className="tt-term-cell">x2</button>
+          </div>
+        </div>
+
+        <div className="editbar-field">
+          <label htmlFor="block-note">notatka</label>
+          <InputTextarea id="block-note" rows={2} />
+        </div>
+
+        <div className="editbar-field tt-color-row">
+          <label htmlFor="block-color">kolor</label>
+          <ColorPicker
+              id="block-color"
+              format="hex"
+              value={(currentBlock?.color ?? "#5f9fd1").replace("#", "")}
+              disabled={disabled}
+              onChange={(e) => handleFieldChange("color", `#${String(e.value)}`)}
             />
         </div>
-        ))}
+
+        <div className="tt-edit-actions">
+          <Button label="edytuj" className="tt-edit-btn" disabled={disabled} />
+          <Button icon="pi pi-replay" rounded outlined onClick={onHide} />
+        </div>
+
+        <div className="tt-edit-bottom">
+          <Button
+            icon="pi pi-trash"
+            severity="secondary"
+            outlined
+            disabled={disabled}
+            onClick={() => currentBlock && onDelete(currentBlock.id)}
+          />
+          <Button label="NOWY BLOK" className="tt-new-block-btn" onClick={onHide} />
+        </div>
+      </div>
     </div>
   );
 };

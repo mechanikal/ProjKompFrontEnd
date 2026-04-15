@@ -1,14 +1,29 @@
-import React, { useRef, useState } from "react";
+import React from "react";
 import { GridProps } from "../utils/TimeGridUtils";
 
 
 const TimetableGrid: React.FC<GridProps> = ({ rows, cols, gridHeight, gridWidth, rowHeights, StartPoint, Bin }) => {
   const cellSize = { x: gridWidth / cols, y: gridHeight / rows };
+  const weekdays = ["MON", "TUE", "WEN", "THD", "FRI", "SAT", "SUN"];
 
   const gridTemplateRows = rowHeights.map(height => `${height*cellSize.y}px`).join(' ');
   return (
-    <div>
+    <div className="timetable-grid-wrap" style={{ height: `${gridHeight + Bin.height + 26}px` }}>
     <div
+      className="timetable-day-rail"
+      style={{
+        top: `${StartPoint.y}px`,
+        height: `${gridHeight}px`,
+        gridTemplateRows,
+      }}
+    >
+      {weekdays.slice(0, rows).map((day) => (
+        <span key={day} className="timetable-day-pill">{day}</span>
+      ))}
+    </div>
+
+    <div
+      className="timetable-grid"
       style={{
         display: "grid",
         gridTemplateColumns: `repeat(${cols}, ${cellSize.x}px)`,
@@ -21,29 +36,23 @@ const TimetableGrid: React.FC<GridProps> = ({ rows, cols, gridHeight, gridWidth,
       {Array.from({ length: rows * cols }).map((_, i) => (
         <div
           key={i}
-          style={{
-            backgroundColor: "lightgray",
-            border: "1px solid #999",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-         {(i%cols + 8)}
-        </div>
+          className="timetable-cell"
+        />
       ))}
     </div>
+
     <div
+      className="timetable-bin"
       style={{
         position: "absolute",
         width: Bin.width,
         height: Bin.height,
-        backgroundColor: "blue",
         left: Bin.StartPoint.x,
         top: Bin.StartPoint.y,
       }}
       >
-      {"bin"}
+      <span className="timetable-bin-title">BIN</span>
+      <span className="timetable-bin-subtitle">drop block to delete</span>
     </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import { BlockData } from "./ClassBlockUtils";
-import { GridProps } from "./TimeGridUtils";
+import { GridProps, getCellPosition } from "./TimeGridUtils";
 
 export type JsonData = {
     info: {
@@ -15,14 +15,16 @@ export type JsonData = {
 };
 
 export function jsonToBlockData(json: JsonData, gridProps: GridProps): BlockData {
-    const cellSize = { x: gridProps.gridWidth / gridProps.cols, y: gridProps.gridHeight / gridProps.rows };
+    const col = json.start - 8;
+    const row = json.day;
+    const position = getCellPosition(row, col, gridProps);
     const result: BlockData = {
         id: 0,
-        col: json.start - 8,
-        row: json.day,
+        col,
+        row,
         subrow: 0,
-        x: json.start * cellSize.x,
-        y: json.day * cellSize.y,
+        x: position.x,
+        y: position.y,
         hourSpan: json.length,
         color: "#" + json.color.toString(16).padStart(6, "0"),
         text: json.info.name
