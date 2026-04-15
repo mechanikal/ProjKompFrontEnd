@@ -65,7 +65,7 @@ export function getCellIndex(x: number, y: number, gridProps: GridProps) {
     if (row >= gridProps.rows){
          row = gridProps.rows - 1;
         };
-    col = Math.max(0, Math.min(Math.round(x / cellSize.x), gridProps.cols - 1));
+    col = Math.max(0, Math.min(Math.floor(x / cellSize.x), gridProps.cols - 1));
     return {row, col};
 }
 export function calculateHeight(rowheights: number[]) {

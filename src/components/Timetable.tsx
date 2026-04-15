@@ -159,6 +159,12 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
 
     const placedBlocksCount = blocksData.filter(block => block.col !== -1 && block.row !== -1).length;
     const hours = Array.from({ length: cols }, (_, index) => `${8 + index}:00`);
+    const boardWidth = currentGridProps.StartPoint.x + currentGridProps.gridWidth;
+    const hoursStyle = {
+        marginLeft: `${currentGridProps.StartPoint.x}px`,
+        width: `${currentGridProps.gridWidth}px`,
+        gridTemplateColumns: `repeat(${cols}, ${currentGridProps.gridWidth / cols}px)`,
+    } as const;
 
     return (
         <div className="tt-layout" style={{ position: "relative" }}>
@@ -187,13 +193,13 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
                     <Button icon="pi pi-refresh" rounded outlined className="tt-icon-btn tt-refresh-btn" />
                 </div>
 
-                <div className="tt-hours-row">
+                <div className="tt-hours-row" style={hoursStyle}>
                     {hours.map((hour) => (
                         <span key={hour} className="tt-hour-pill">{hour}</span>
                     ))}
                 </div>
 
-                <div className="tt-board" style={{ position: "relative" }}>
+                <div className="tt-board" style={{ position: "relative", width: `${boardWidth}px` }}>
                     <TimetableGrid rows={rows} cols={cols} gridHeight={gridHeight} gridWidth={gridWidth} rowHeights={rowHeights} StartPoint={currentGridProps.StartPoint} Bin={currentGridProps.Bin} />
                     {blocksData.map((block) => (
                         <ClassBlock
