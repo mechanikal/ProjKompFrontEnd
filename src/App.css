@@ -1,6 +1,6 @@
 .app-shell {
   min-height: 100vh;
-  padding: 14px;
+  padding: 10px;
   background:
     radial-gradient(circle at 20% 0%, #2b2f36 0%, #1c1f24 35%, #14171b 80%),
     linear-gradient(135deg, #15181d 0%, #20252c 100%);
@@ -8,7 +8,7 @@
 }
 
 .app-topbar {
-  height: 58px;
+  height: 62px;
   background: linear-gradient(90deg, #1a1d22 0%, #2c3139 50%, #1a1d22 100%);
   border: 1px solid #2f3540;
   box-shadow: inset 0 0 0 1px #191b20;
@@ -19,11 +19,12 @@
 }
 
 .app-title {
-  font-size: 28px;
-  letter-spacing: 1.1px;
+  font-size: 18px;
+  letter-spacing: 0.65px;
   font-weight: 700;
   color: #e7ebf2;
   text-transform: uppercase;
+  margin: 0 auto;
 }
 
 .app-user {
@@ -44,15 +45,15 @@
 }
 
 .app-main {
-  margin-top: 14px;
+  margin-top: 10px;
   border: 1px solid #2f3540;
   background: linear-gradient(180deg, #23272d 0%, #1b1f24 100%);
   box-shadow: inset 0 0 0 1px #181b1f;
-  padding: 14px;
+  padding: 12px;
 }
 
 .app-footer {
-  margin-top: 14px;
+  margin-top: 10px;
   border: 1px solid #2f3540;
   background: linear-gradient(180deg, #23272d 0%, #1b1f24 100%);
   box-shadow: inset 0 0 0 1px #181b1f;
@@ -60,26 +61,26 @@
   display: flex;
   align-items: center;
   gap: 26px;
-  padding: 16px 24px;
+  padding: 14px 24px;
 }
 
 .app-footer-logo {
-  width: 78px;
-  height: 78px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
   border: 2px solid #c6cfdb;
   color: #f4f7fc;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 34px;
+  font-size: 30px;
   font-weight: 800;
   letter-spacing: 2px;
 }
 
 .app-footer-content p {
-  margin: 2px 0;
-  font-size: 14px;
+  margin: 1px 0;
+  font-size: 13px;
   color: #d1d7e2;
 }
 

@@ -4,6 +4,7 @@ import { InputNumber } from "primereact/inputnumber";
 import { ColorPicker } from "primereact/colorpicker";
 import { Button } from "primereact/button";
 import { Slider } from "primereact/slider";
+import { InputTextarea } from "primereact/inputtextarea";
 import { BlockData } from "../utils/ClassBlockUtils";
 
 export type EditBarData = {
@@ -31,7 +32,7 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onChange, onHide, onDelete 
 
   return (
     <div className="tt-edit-panel">
-      <div className="tt-edit-header">Panel Edycji</div>
+      <div className="tt-edit-header-line" />
       <div className="editbar-form">
         <div className="editbar-field">
           <label htmlFor="block-name">Nazwa przedmiotu</label>
@@ -45,10 +46,12 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onChange, onHide, onDelete 
 
         <div className="editbar-field">
           <label htmlFor="block-extra">informacje dodatkowe</label>
-          <InputText
+          <InputTextarea
             id="block-extra"
             value={currentBlock ? `blok #${currentBlock.id}` : ""}
             disabled
+            rows={2}
+            autoResize
           />
         </div>
 
@@ -68,23 +71,29 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onChange, onHide, onDelete 
         <div className="editbar-field">
           <label>terminy</label>
           <div className="tt-term-grid">
-            {Array.from({ length: 14 }, (_, index) => (
+            {Array.from({ length: 15 }, (_, index) => (
               <button key={index + 1} type="button" className="tt-term-cell">
-                {index + 1}
+                {index === 14 ? "x1" : index + 1}
               </button>
             ))}
+            <button type="button" className="tt-term-cell">x2</button>
           </div>
         </div>
 
         <div className="editbar-field">
-          <label htmlFor="block-color">notatka / kolor</label>
+          <label htmlFor="block-note">notatka</label>
+          <InputTextarea id="block-note" rows={2} />
+        </div>
+
+        <div className="editbar-field tt-color-row">
+          <label htmlFor="block-color">kolor</label>
           <ColorPicker
-            id="block-color"
-            format="hex"
-            value={(currentBlock?.color ?? "#5f9fd1").replace("#", "")}
-            disabled={disabled}
-            onChange={(e) => handleFieldChange("color", `#${String(e.value)}`)}
-          />
+              id="block-color"
+              format="hex"
+              value={(currentBlock?.color ?? "#5f9fd1").replace("#", "")}
+              disabled={disabled}
+              onChange={(e) => handleFieldChange("color", `#${String(e.value)}`)}
+            />
         </div>
 
         <div className="tt-edit-actions">

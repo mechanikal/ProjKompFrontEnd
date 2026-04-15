@@ -168,16 +168,23 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
         <div className="tt-surface">
             <section className="tt-left-panel">
                 <div className="tt-prompt-row">
+                    <Button icon="pi pi-link" rounded text className="tt-icon-btn tt-prompt-link" />
                     <InputText placeholder="enter prompt" className="tt-prompt-input" />
                     <Button icon="pi pi-send" rounded text className="tt-icon-btn" />
                 </div>
 
                 <div className="tt-plan-row">
                     <span>powiadomienia e-mail</span>
+                    <span className="tt-mail-toggle" aria-hidden="true"><span /></span>
+                </div>
+
+                <div className="tt-plan-row tt-plan-tags-row">
+                    <span>plany:</span>
                     <Tag value="nazwa grupy" severity="info" />
                     <Tag value="nazwa grupy" severity="info" />
                     <Button icon="pi pi-plus" text rounded className="tt-icon-btn" />
-                    <Button icon="pi pi-refresh" text rounded className="tt-icon-btn" />
+                    <div className="tt-plan-row-spacer" />
+                    <Button icon="pi pi-refresh" rounded outlined className="tt-icon-btn tt-refresh-btn" />
                 </div>
 
                 <div className="tt-hours-row">
@@ -201,9 +208,9 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
 
                 <div className="tt-bottom-row">
                     <div className="tt-bottom-nav">
-                        <Button icon="pi pi-arrow-left" rounded outlined className="tt-nav-btn" />
+                        <Button icon="pi pi-replay" rounded outlined className="tt-nav-btn" />
                         <span className="tt-date-pill">25.01-1.02</span>
-                        <Button icon="pi pi-arrow-right" rounded outlined className="tt-nav-btn" />
+                        <Button icon="pi pi-share-alt" rounded outlined className="tt-nav-btn" />
                     </div>
 
                     <Button label="pobierz pdf" icon="pi pi-download" className="tt-download-btn" />
