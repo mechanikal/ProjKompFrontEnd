@@ -28,8 +28,8 @@ function useWindowSize() {
 function App() {
   const { width, height } = useWindowSize();
   const contentWidth = Math.min(980, Math.max(760, width * 0.72));
-  const CELL_WIDTH_BONUS = 5;
-  const CELL_HEIGHT_BONUS = 5;
+  const CELL_WIDTH_BONUS = 10;
+  const CELL_HEIGHT_BONUS = 10;
 
   // Keep grid math on integer pixels to avoid subpixel drift between cells and blocks.
   const rawGridWidth = contentWidth - 74;
