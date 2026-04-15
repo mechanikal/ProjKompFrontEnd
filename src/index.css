@@ -231,8 +231,7 @@ body {
 
 .timetable-cell {
 	background: var(--tt-cell);
-	border-right: 1px solid var(--tt-cell-border);
-	border-bottom: 1px solid var(--tt-cell-border);
+	border: 1px solid var(--tt-cell-border);
 }
 
 .timetable-bin {
