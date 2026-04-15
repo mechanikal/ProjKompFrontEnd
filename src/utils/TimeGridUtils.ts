@@ -26,10 +26,11 @@ export type GridProps = {
 export function recalculateOccupiedCells(blocksData: BlockData[], gridProps: GridProps) {
     const newOccupied = Array(gridProps.rows * gridProps.cols).fill(0);
     blocksData.forEach(block => {
+        if (block.col == -1 || block.row == -1) {
+            return;
+        }
+
         for (let i = 0; i < block.hourSpan; i++) {
-            if(block.col == -1 || block.row == -1){
-                continue;
-            }
             const index = block.row * gridProps.cols + block.col + i;
             newOccupied[index] += 1;
         }
@@ -48,7 +49,6 @@ export function recalculateRowHeights(blocksData: BlockData[],gridProps: GridPro
 
 
 export function getCellIndex(x: number, y: number, gridProps: GridProps) {
-    console.log("getting cell index for position:", {x,y});
     let row = 0;
     let col;
     let sumY = 0;
@@ -73,8 +73,6 @@ export function calculateHeight(rowheights: number[]) {
 }
 //todo: implement blocks bin
 export function isBinArea(x:number,y:number,gridProps:GridProps){
-    console.log("checking bin area for position:", {x,y});
-    console.log("bin area:", gridProps.Bin);
     const binStartPoint = gridProps.Bin.StartPoint;
     const binDim = {x:gridProps.Bin.width, y:gridProps.Bin.height}
     if(x > binStartPoint.x && x < binStartPoint.x + binDim.x){
@@ -83,6 +81,15 @@ export function isBinArea(x:number,y:number,gridProps:GridProps){
         }
     }
     return false;
+}
+
+export function getRowHeightsFromOccupiedCells(occupiedCells: number[], rows: number, cols: number) {
+    return Array.from({ length: rows }, (_, row) => {
+        const rowStart = row * cols;
+        const rowEnd = rowStart + cols;
+        const maxOccupied = Math.max(0, ...occupiedCells.slice(rowStart, rowEnd));
+        return Math.max(1, maxOccupied);
+    });
 }
 
 export function getCellPosition(row: number, col: number, gridProps: GridProps) {

@@ -1,5 +1,4 @@
-import React, { useRef, useState } from "react";
-import { GridProps } from "../utils/TimeGridUtils";
+import React from "react";
 import { BlockData } from "../utils/ClassBlockUtils";
 
 export type EditBarData = {
@@ -9,13 +8,10 @@ export type EditBarData = {
 
 
 const EditBar: React.FC<EditBarData> = ({blockData, onChange}) => {
-    
   if (!blockData) return null
-  const [text, setText] = useState("");
-    const ignoredKeys: (keyof BlockData)[] = ["id", "x", "y","subrow"];
+  const ignoredKeys: (keyof BlockData)[] = ["id", "x", "y", "subrow"];
 
-
-  const handleFieldChange = (key: keyof BlockData, value: any) => {
+  const handleFieldChange = <K extends keyof BlockData>(key: K, value: BlockData[K]) => {
     onChange({
       ...blockData,
       [key]: value
@@ -36,16 +32,22 @@ const EditBar: React.FC<EditBarData> = ({blockData, onChange}) => {
     >
       <p>edit bar</p>
 
-      
       {Object.entries(blockData)
       .filter(([key]) => !ignoredKeys.includes(key as keyof BlockData))
       .map(([key, value]) => (
         <div key={key}>
             {key}
             <input
-            type="text"
+            type={typeof value === "number" ? "number" : "text"}
             value={value}
-            onChange={(e) => handleFieldChange(key as keyof BlockData, e.target.value)}
+            onChange={(e) => {
+              const typedKey = key as keyof BlockData;
+              const nextValue = typeof value === "number"
+                ? Number(e.target.value)
+                : e.target.value;
+
+              handleFieldChange(typedKey, nextValue as BlockData[typeof typedKey]);
+            }}
             style={{ width: "100%" }}
             />
         </div>

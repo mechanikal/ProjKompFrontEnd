@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BlockData, getGridSnappedPosition } from "../utils/ClassBlockUtils";
+import { BlockData } from "../utils/ClassBlockUtils";
 import { GridProps } from "../utils/TimeGridUtils";
 
 type BlockProps = {
@@ -11,7 +11,7 @@ type BlockProps = {
 
 export default function Block({
   blockData: { id: blockId, col, row, subrow, x, y, hourSpan, color, text },
-  gridProps: { gridWidth, gridHeight, cols, rows, rowHeights, StartPoint },
+  gridProps: { gridWidth, gridHeight, cols, rows },
   handleDrop,
   handlePickup
 
@@ -20,12 +20,11 @@ export default function Block({
   const [isDragging, setIsDragging] = useState(false);
   const cellSize = { x: gridWidth /cols, y: gridHeight / rows };
 
-  // Update position when block data changes
   useEffect(() => {
-    console.log("block data changed:", { col, row, subrow, x, y });
-    console.log("old position:", position);
-    setPosition({ x: x, y: y });
-  }, [x, y, col, row]);
+    if (!isDragging) {
+      setPosition({ x, y });
+    }
+  }, [x, y, isDragging]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);

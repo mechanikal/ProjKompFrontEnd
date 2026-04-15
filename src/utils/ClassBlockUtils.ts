@@ -13,6 +13,16 @@ export type BlockData = {
     text: string;
 };
 
+export function sortBlocksByPlacement(blocksData: BlockData[]) {
+    return [...blocksData].sort((a, b) => {
+        if (a.col === b.col) {
+            return b.hourSpan - a.hourSpan;
+        }
+
+        return a.col - b.col;
+    });
+}
+
 function isOverlapping(blockA: BlockData, blockB: BlockData) {
     if (blockA.row !== blockB.row || blockA.col == -1) {
         return false;

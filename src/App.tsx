@@ -1,8 +1,5 @@
-import { useState } from "react";
-import Block from "./components/ClassBlock";
+import { useMemo, useState, useEffect } from "react";
 import Timetable from "./components/Timetable";
-import EditBar from "./components/EditBar";
-import { useEffect} from "react";
 
 function useWindowSize() {
   const [size, setSize] = useState({
@@ -28,8 +25,8 @@ function useWindowSize() {
 
 
 function App() {
-  const {width, height} = useWindowSize();
-  const gridProps = {
+  const {width} = useWindowSize();
+  const gridProps = useMemo(() => ({
     rows: 7,
     cols: 12,
     gridWidth: width * 0.70,
@@ -39,9 +36,9 @@ function App() {
     Bin: {
       StartPoint: {x:2,y:800},
       height: 150,
-      width: window.innerWidth * 0.75,
+      width: width * 0.75,
     } 
-  };
+  }), [width]);
 
   return (
     <div style={{margin:0, padding: 0}}>

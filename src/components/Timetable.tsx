@@ -1,12 +1,13 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import TimetableGrid from "./TimetableGrid";
 import ClassBlock from "./ClassBlock";
-import { BlockData, recalculateBlockPostions, recalculateBlockSubrows, getGridSnappedPosition, updateBlockPosition, removeBlock } from "../utils/ClassBlockUtils";
-import { recalculateOccupiedCells, GridProps, isBinArea, calculateHeight } from "../utils/TimeGridUtils";
+import { BlockData, getGridSnappedPosition, updateBlockPosition, removeBlock, recalculateBlockPostions, recalculateBlockSubrows, sortBlocksByPlacement } from "../utils/ClassBlockUtils";
+import { recalculateOccupiedCells, GridProps, isBinArea, getRowHeightsFromOccupiedCells } from "../utils/TimeGridUtils";
 import { jsonToBlockData, JsonData } from "../utils/JsonUtils";
 import { getNewBlockPosition, SpawnNewBlock } from "../utils/NewBlockUtils";
 import { isNewBlockPresent } from "../utils/NewBlockUtils";
 import EditBar from "./EditBar";
+import { buildCurrentGridProps } from "../utils/TimetableLayoutUtils";
 
 type TimetableProps = {
   gridProps: GridProps;
@@ -14,33 +15,31 @@ type TimetableProps = {
 };
 
 const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
-    const { rows, cols, gridHeight, gridWidth, StartPoint ,Bin } = gridProps;
+    const { rows, cols, gridHeight, gridWidth } = gridProps;
     const cellSize = { x: gridWidth / cols, y: gridHeight / rows };
     const [rowHeights, setRowHeights] = useState(Array(rows).fill(1));
     const [blocksData, setBlocksData] = useState<BlockData[]>([]);
     const [occupiedCells, setOccupiedCells] = useState<number[]>(Array(rows * cols).fill(0));
     const [selectedBlockId, setSelectedBlockId] = useState<number | null>(null);
 
-    const currentGridProps = { ...gridProps, rowHeights };
+    const currentGridProps = useMemo(() => buildCurrentGridProps(gridProps, rowHeights), [gridProps, rowHeights]);
     const selectedBlock = blocksData.find(b => b.id === selectedBlockId) || null;
 
+    useEffect(() => {
+        setRowHeights(getRowHeightsFromOccupiedCells(occupiedCells, rows, cols));
+    }, [occupiedCells, rows, cols]);
+
+    useEffect(() => {
+        setBlocksData(prev => recalculateBlockPostions(recalculateBlockSubrows(sortBlocksByPlacement(prev)), currentGridProps));
+    }, [currentGridProps]);
+
     const handleEditBlock = (updatedBlock: BlockData) => {
-        setBlocksData(prev =>
-            prev.map(b => (b.id === updatedBlock.id ? updatedBlock : b))
+        const nextBlocks = sortBlocksByPlacement(
+            blocksData.map(b => (b.id === updatedBlock.id ? updatedBlock : b))
         );
-        setBlocksData(prev=>{
-            const newBlocks = [...prev];
-            newBlocks.sort((a,b) =>{
-                if (a.col == b.col){
-                    return (b.hourSpan - a.hourSpan)
-                }
-                return (a.col - b.col);
-            });
-            return newBlocks;
-        });
-        setBlocksData(prev => recalculateBlockSubrows(prev));
-        setBlocksData(prev => recalculateBlockPostions(prev, currentGridProps));
-        gridProps.Bin.StartPoint.y = StartPoint.y + calculateHeight(rowHeights)*cellSize.y;
+
+        setBlocksData(nextBlocks);
+        setOccupiedCells(recalculateOccupiedCells(nextBlocks, currentGridProps));
     };
 
     // read blocks data from json file
@@ -59,44 +58,13 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
                     block.id = index;
                     return { ...block, id: index };
                 });
-                
-                setBlocksData(SpawnNewBlock(blocks,currentGridProps.Bin));
-                setOccupiedCells(recalculateOccupiedCells(blocks, currentGridProps));
+
+                const blocksWithBin = SpawnNewBlock(blocks, currentGridProps.Bin);
+                setBlocksData(sortBlocksByPlacement(blocksWithBin));
+                setOccupiedCells(recalculateOccupiedCells(blocksWithBin, currentGridProps));
             })
             .catch(err => console.error(err));
-    }, []);
-
-    // recalculate propererties after block move
-
-    useEffect(() => {
-        setRowHeights(prev => {
-            const newHeights = [...prev];
-            for (let row = 0; row < rows; row++) {
-                const maxOccupied = Math.max(...occupiedCells.slice(row * cols, (row + 1) * cols));
-                newHeights[row] = Math.max(1, maxOccupied);
-            }
-            
-            return newHeights;
-
-        });
-    }, [occupiedCells, rows, cols]);
-
-    useEffect(() => {
-        console.log("occupied cells changed:", occupiedCells);
-        setBlocksData(prev=>{
-            const newBlocks = [...prev];
-            newBlocks.sort((a,b) =>{
-                if (a.col == b.col){
-                    return (b.hourSpan - a.hourSpan)
-                }
-                return (a.col - b.col);
-            });
-            return newBlocks;
-        });
-        setBlocksData(prev => recalculateBlockSubrows(prev));
-        setBlocksData(prev => recalculateBlockPostions(prev, currentGridProps));
-        gridProps.Bin.StartPoint.y = StartPoint.y + calculateHeight(rowHeights)*cellSize.y;
-    }, [occupiedCells, rowHeights,gridProps]);
+            }, [gridProps]);
 
     //block handlers
 
@@ -105,6 +73,8 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
         if (!block) return;
         if (block.col == -1 || block.row == -1){
             setBlocksData(SpawnNewBlock(blocksData,currentGridProps.Bin));
+            setSelectedBlockId(blockId);
+            return;
         }
 
         setOccupiedCells(prev => {
@@ -120,33 +90,29 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
 
     const handleBlockDrop = (blockId: number, newX: number, newY: number, hourSpan: number) => {
         if (isBinArea(newX,newY,currentGridProps)){
-            console.log("binning block:",blockId);
-            var newData = removeBlock(blocksData,blockId);
+            let newData = removeBlock(blocksData,blockId);
             if(!isNewBlockPresent(newData)){
                 newData = SpawnNewBlock(newData,currentGridProps.Bin);
             }
-            setBlocksData(newData);
+            setBlocksData(sortBlocksByPlacement(newData));
+            setOccupiedCells(recalculateOccupiedCells(newData, currentGridProps));
+            setSelectedBlockId(null);
             return {x: getNewBlockPosition(currentGridProps.Bin).x, y: getNewBlockPosition(currentGridProps.Bin).y};
         }
         const snappedPos = getGridSnappedPosition(newX, newY + cellSize.y/2, hourSpan, currentGridProps);
-        console.log("snapped pos:", snappedPos);
         const newBlocksData = updateBlockPosition(blocksData, blockId, snappedPos.x, snappedPos.y, currentGridProps);
         setOccupiedCells(recalculateOccupiedCells(newBlocksData, currentGridProps));
-        var recalculatedBlocks = recalculateBlockPostions(newBlocksData, currentGridProps);
+        let recalculatedBlocks = sortBlocksByPlacement(newBlocksData);
         if(!isNewBlockPresent(recalculatedBlocks)){
             recalculatedBlocks = SpawnNewBlock(recalculatedBlocks,currentGridProps.Bin);
         }
         setBlocksData(recalculatedBlocks);
-        const updatedBlock = recalculatedBlocks.find(b => b.id === blockId);
-        if (!updatedBlock){
-            return {x:0,y:0}
-        }
-        return { x: updatedBlock.x, y: updatedBlock.y };
+        return snappedPos;
     }
 
     return (
         <div style={{ position: "relative" }}>
-        <TimetableGrid rows={rows} cols={cols} gridHeight={gridHeight} gridWidth={gridWidth} rowHeights={rowHeights} StartPoint={StartPoint} Bin={Bin} />
+        <TimetableGrid rows={rows} cols={cols} gridHeight={gridHeight} gridWidth={gridWidth} rowHeights={rowHeights} StartPoint={currentGridProps.StartPoint} Bin={currentGridProps.Bin} />
         {blocksData.map((block) => (
             <ClassBlock
                 gridProps={gridProps}
