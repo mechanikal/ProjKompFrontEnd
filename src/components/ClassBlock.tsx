@@ -16,6 +16,8 @@ export default function Block({
   handlePickup
 
 }: BlockProps) {
+  const VISUAL_OFFSET_X = 8;
+  const VISUAL_OFFSET_Y = 8;
   const [position, setPosition] = useState({ x: x, y: y });
   const [isDragging, setIsDragging] = useState(false);
   const cellSize = { x: gridWidth /cols, y: gridHeight / rows };
@@ -67,8 +69,8 @@ export default function Block({
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        left: Math.round(position.x),
-        top: Math.round(position.y),
+        left: Math.round(position.x) + VISUAL_OFFSET_X,
+        top: Math.round(position.y) + VISUAL_OFFSET_Y,
         cursor: isDragging ? "grabbing" : "grab",
         borderRadius: 4,
         userSelect: "none",
