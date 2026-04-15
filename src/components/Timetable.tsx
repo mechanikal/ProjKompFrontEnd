@@ -160,10 +160,15 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
     const placedBlocksCount = blocksData.filter(block => block.col !== -1 && block.row !== -1).length;
     const hours = Array.from({ length: cols }, (_, index) => `${8 + index}:00`);
     const boardWidth = currentGridProps.StartPoint.x + currentGridProps.gridWidth;
+    const hourCellWidth = currentGridProps.gridWidth / currentGridProps.cols;
+    const hourRowHeight = Math.max(24, Math.round(cellSize.y * 0.65));
+    const boardInnerOffset = 6;
     const hoursStyle = {
-        marginLeft: `${currentGridProps.StartPoint.x}px`,
-        width: `${currentGridProps.gridWidth}px`,
-        gridTemplateColumns: `repeat(${cols}, ${currentGridProps.gridWidth / cols}px)`,
+        marginLeft: `${currentGridProps.StartPoint.x + boardInnerOffset}px`,
+        width: `${currentGridProps.gridWidth - boardInnerOffset * 2}px`,
+        height: `${hourRowHeight}px`,
+        gridTemplateColumns: `repeat(${cols}, ${hourCellWidth}px)`,
+        gap: 0,
     } as const;
 
     return (

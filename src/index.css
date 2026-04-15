@@ -132,15 +132,16 @@ body {
 
 .tt-hours-row {
 	display: grid;
-	gap: 4px;
 	margin-bottom: 9px;
+	align-items: stretch;
 }
 
 .tt-hour-pill {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	height: 23px;
+	height: 100%;
+	width: 100%;
 	font-size: 10px;
 	color: #dbe2ee;
 	background: #2d323a;
@@ -207,15 +208,15 @@ body {
 	left: 2px;
 	width: 42px;
 	display: grid;
-	grid-template-rows: repeat(7, 1fr);
-	gap: 4px;
-	height: 100%;
+	grid-template-rows: repeat(7, minmax(0, 1fr));
+	gap: 0;
 }
 
 .timetable-day-pill {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	height: 100%;
 	background: #2e333c;
 	border: 1px solid #3a424f;
 	border-radius: 14px;

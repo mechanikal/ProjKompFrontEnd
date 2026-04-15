@@ -9,7 +9,14 @@ const TimetableGrid: React.FC<GridProps> = ({ rows, cols, gridHeight, gridWidth,
   const gridTemplateRows = rowHeights.map(height => `${height*cellSize.y}px`).join(' ');
   return (
     <div className="timetable-grid-wrap" style={{ height: `${gridHeight + Bin.height + 26}px` }}>
-    <div className="timetable-day-rail" style={{ top: `${StartPoint.y}px` }}>
+    <div
+      className="timetable-day-rail"
+      style={{
+        top: `${StartPoint.y}px`,
+        height: `${gridHeight}px`,
+        gridTemplateRows,
+      }}
+    >
       {weekdays.slice(0, rows).map((day) => (
         <span key={day} className="timetable-day-pill">{day}</span>
       ))}
