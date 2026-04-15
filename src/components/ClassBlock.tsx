@@ -10,7 +10,7 @@ type BlockProps = {
 };
 
 export default function Block({
-  blockData: { id: blockId, col, row, subrow, x, y, hourSpan, color, text },
+  blockData: { id: blockId, x, y, hourSpan, color, text },
   gridProps: { gridWidth, gridHeight, cols, rows },
   handleDrop,
   handlePickup
@@ -56,26 +56,34 @@ export default function Block({
   return (
     <div
       onMouseDown={handleMouseDown}
+      className="tt-class-block"
       style={{
         position: "absolute",
         width: cellSize.x * hourSpan,
-        height: cellSize.y,
+        height: cellSize.y - 2,
         backgroundColor: color,
-        color: "white",
+        color: "#f4f8ff",
         display: "flex",
+        flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
         left: position.x,
         top: position.y,
         cursor: isDragging ? "grabbing" : "grab",
-        borderRadius: 8,
+        borderRadius: 4,
         userSelect: "none",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-        transition: isDragging ? "none" : "box-shadow 0.2s",
-        fontSize: "10px"
+        boxShadow: isDragging ? "0 0 0 1px rgba(255,255,255,0.35)" : "0 1px 10px rgba(0,0,0,0.35)",
+        transition: isDragging ? "none" : "box-shadow 0.2s, filter 0.2s",
+        fontSize: "11px",
+        fontWeight: 600,
+        letterSpacing: "0.2px",
+        textAlign: "center",
+        padding: "2px 8px",
+        filter: isDragging ? "brightness(1.06)" : "none",
       }}
       >
-      {text}
+      <span>{text}</span>
+      <small className="tt-class-sub">Sample caption</small>
     </div>
   );
 }

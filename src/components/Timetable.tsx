@@ -8,8 +8,9 @@ import { getNewBlockPosition, SpawnNewBlock } from "../utils/NewBlockUtils";
 import { isNewBlockPresent } from "../utils/NewBlockUtils";
 import EditBar from "./EditBar";
 import { buildCurrentGridProps } from "../utils/TimetableLayoutUtils";
-import { Toolbar } from "primereact/toolbar";
 import { Button } from "primereact/button";
+import { InputText } from "primereact/inputtext";
+import { Tag } from "primereact/tag";
 import { Toast } from "primereact/toast";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 
@@ -157,47 +158,69 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps }) => {
     }
 
     const placedBlocksCount = blocksData.filter(block => block.col !== -1 && block.row !== -1).length;
-
-    const leftToolbar = (
-        <div className="tt-toolbar-group">
-            <span className="tt-toolbar-title">Plan Zajec</span>
-            <span className="tt-toolbar-meta">Aktywne bloki: {placedBlocksCount}</span>
-        </div>
-    );
-
-    const rightToolbar = (
-        <Button
-            label="Zamknij Edytor"
-            icon="pi pi-times"
-            outlined
-            disabled={selectedBlockId == null}
-            onClick={() => setSelectedBlockId(null)}
-        />
-    );
+    const hours = Array.from({ length: cols }, (_, index) => `${8 + index}:00`);
 
     return (
         <div className="tt-layout" style={{ position: "relative" }}>
         <ConfirmDialog />
-        <Toast ref={toast} />
-        <Toolbar className="tt-toolbar" start={leftToolbar} end={rightToolbar} />
-        <TimetableGrid rows={rows} cols={cols} gridHeight={gridHeight} gridWidth={gridWidth} rowHeights={rowHeights} StartPoint={currentGridProps.StartPoint} Bin={currentGridProps.Bin} />
-        {blocksData.map((block) => (
-            <ClassBlock
-                gridProps={gridProps}
-                handlePickup={handleBlockPickup}
-                handleDrop={handleBlockDrop}
-                key={block.id}
-                blockData={block}
-            />
-        ))}
-        {selectedBlock != null && (
+        <Toast ref={toast} position="top-right" />
+
+        <div className="tt-surface">
+            <section className="tt-left-panel">
+                <div className="tt-prompt-row">
+                    <InputText placeholder="enter prompt" className="tt-prompt-input" />
+                    <Button icon="pi pi-send" rounded text className="tt-icon-btn" />
+                </div>
+
+                <div className="tt-plan-row">
+                    <span>powiadomienia e-mail</span>
+                    <Tag value="nazwa grupy" severity="info" />
+                    <Tag value="nazwa grupy" severity="info" />
+                    <Button icon="pi pi-plus" text rounded className="tt-icon-btn" />
+                    <Button icon="pi pi-refresh" text rounded className="tt-icon-btn" />
+                </div>
+
+                <div className="tt-hours-row">
+                    {hours.map((hour) => (
+                        <span key={hour} className="tt-hour-pill">{hour}</span>
+                    ))}
+                </div>
+
+                <div className="tt-board" style={{ position: "relative" }}>
+                    <TimetableGrid rows={rows} cols={cols} gridHeight={gridHeight} gridWidth={gridWidth} rowHeights={rowHeights} StartPoint={currentGridProps.StartPoint} Bin={currentGridProps.Bin} />
+                    {blocksData.map((block) => (
+                        <ClassBlock
+                            gridProps={gridProps}
+                            handlePickup={handleBlockPickup}
+                            handleDrop={handleBlockDrop}
+                            key={block.id}
+                            blockData={block}
+                        />
+                    ))}
+                </div>
+
+                <div className="tt-bottom-row">
+                    <div className="tt-bottom-nav">
+                        <Button icon="pi pi-arrow-left" rounded outlined className="tt-nav-btn" />
+                        <span className="tt-date-pill">25.01-1.02</span>
+                        <Button icon="pi pi-arrow-right" rounded outlined className="tt-nav-btn" />
+                    </div>
+
+                    <Button label="pobierz pdf" icon="pi pi-download" className="tt-download-btn" />
+                </div>
+
+                <div className="tt-active-count">Aktywne bloki: {placedBlocksCount}</div>
+            </section>
+
+            <aside className="tt-right-panel">
             <EditBar
                 blockData={selectedBlock}
                 onChange={handleEditBlock}
                 onHide={() => setSelectedBlockId(null)}
                 onDelete={handleDeleteRequest}
             />
-        )}
+            </aside>
+        </div>
         </div>
     );
 };

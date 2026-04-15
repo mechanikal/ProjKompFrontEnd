@@ -1,7 +1,99 @@
-html, body {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  width: 100%;
-  height: 100%;
+.app-shell {
+  min-height: 100vh;
+  padding: 14px;
+  background:
+    radial-gradient(circle at 20% 0%, #2b2f36 0%, #1c1f24 35%, #14171b 80%),
+    linear-gradient(135deg, #15181d 0%, #20252c 100%);
+  color: #d7dde7;
+}
+
+.app-topbar {
+  height: 58px;
+  background: linear-gradient(90deg, #1a1d22 0%, #2c3139 50%, #1a1d22 100%);
+  border: 1px solid #2f3540;
+  box-shadow: inset 0 0 0 1px #191b20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 22px;
+}
+
+.app-title {
+  font-size: 28px;
+  letter-spacing: 1.1px;
+  font-weight: 700;
+  color: #e7ebf2;
+  text-transform: uppercase;
+}
+
+.app-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #f2f4f7;
+  font-weight: 600;
+}
+
+.app-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: inline-block;
+  background: radial-gradient(circle at 30% 30%, #ffffff 0%, #cfd5de 35%, #8f98a6 100%);
+  border: 1px solid #7d8797;
+}
+
+.app-main {
+  margin-top: 14px;
+  border: 1px solid #2f3540;
+  background: linear-gradient(180deg, #23272d 0%, #1b1f24 100%);
+  box-shadow: inset 0 0 0 1px #181b1f;
+  padding: 14px;
+}
+
+.app-footer {
+  margin-top: 14px;
+  border: 1px solid #2f3540;
+  background: linear-gradient(180deg, #23272d 0%, #1b1f24 100%);
+  box-shadow: inset 0 0 0 1px #181b1f;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  padding: 16px 24px;
+}
+
+.app-footer-logo {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  border: 2px solid #c6cfdb;
+  color: #f4f7fc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.app-footer-content p {
+  margin: 2px 0;
+  font-size: 14px;
+  color: #d1d7e2;
+}
+
+@media (max-width: 1100px) {
+  .app-title {
+    font-size: 19px;
+  }
+
+  .app-user {
+    font-size: 13px;
+  }
+
+  .app-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

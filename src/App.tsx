@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import Timetable from "./components/Timetable";
+import "./App.css";
 
 function useWindowSize() {
   const [size, setSize] = useState({
@@ -25,25 +26,47 @@ function useWindowSize() {
 
 
 function App() {
-  const {width} = useWindowSize();
+  const { width, height } = useWindowSize();
+  const contentWidth = Math.min(980, Math.max(760, width * 0.72));
+  const gridWidth = contentWidth - 74;
+  const gridHeight = Math.min(420, Math.max(280, height * 0.42));
+
   const gridProps = useMemo(() => ({
     rows: 7,
     cols: 12,
-    gridWidth: width * 0.70,
-    gridHeight: width * 0.20,
+    gridWidth,
+    gridHeight,
     rowHeights: [1, 1, 1, 1, 1, 1, 1],
-    StartPoint: { x: 0, y: 0 },
+    StartPoint: { x: 54, y: 0 },
     Bin: {
-      StartPoint: {x:2,y:800},
-      height: 150,
-      width: width * 0.75,
+      StartPoint: { x: 54 + gridWidth - 230, y: gridHeight + 18 },
+      height: 62,
+      width: 230,
     } 
-  }), [width]);
+  }), [gridHeight, gridWidth]);
 
   return (
-    <div style={{margin:0, padding: 0}}>
-      <h1>Timetable App</h1>
-      <Timetable gridProps={gridProps} />
+    <div className="app-shell">
+      <header className="app-topbar">
+        <div className="app-title">WIRTUALNY PLAN ZAJEC POLITECHNIKI LODZKIEJ</div>
+        <div className="app-user">
+          <span>Logowanie</span>
+          <span className="app-avatar" aria-hidden="true" />
+        </div>
+      </header>
+
+      <main className="app-main">
+        <Timetable gridProps={gridProps} />
+      </main>
+
+      <footer className="app-footer">
+        <div className="app-footer-logo">P L</div>
+        <div className="app-footer-content">
+          <p>Projekt kompetencyjny</p>
+          <p>AI powered Class Plan for Lodz University of Technology</p>
+          <p>Wykonawcy: Kacper Orliwoszewski, Krzysztof Wojtal, Stanislaw Jaworski, Witold Struminski</p>
+        </div>
+      </footer>
     </div>
   );
 }
