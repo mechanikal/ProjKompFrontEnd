@@ -69,6 +69,7 @@ export default function Block({
         alignItems: "center",
         left: position.x,
         top: position.y,
+        transform: "translate(2px, 2px)",
         cursor: isDragging ? "grabbing" : "grab",
         borderRadius: 4,
         userSelect: "none",
