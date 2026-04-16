@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { BlockData } from "../utils/ClassBlockUtils";
 import { GridProps } from "../utils/TimeGridUtils";
 import { getClassDisplayColor, getReadableTextColor, ThemeMode } from "../utils/ThemeUtils";
+import { motion, Variants } from "framer-motion";
+import { blockItemVariants, springTransition } from "../utils/MotionUtils";
 
 type BlockProps = {
   handleDrop: (blockId: number, x: number, y: number, hourSpan: number) => {x: number, y: number};
@@ -9,6 +11,7 @@ type BlockProps = {
   blockData: BlockData;
   gridProps: GridProps;
   theme: ThemeMode;
+  variants?: Variants;
 };
 
 export default function Block({
@@ -16,7 +19,8 @@ export default function Block({
   gridProps: { gridWidth, gridHeight, cols, rows },
   handleDrop,
   handlePickup,
-  theme
+  theme,
+  variants,
 
 }: BlockProps) {
   const VISUAL_OFFSET_X = 8;
@@ -63,7 +67,15 @@ export default function Block({
   };
 
   return (
-    <div
+    <motion.div
+      layout
+      transition={springTransition}
+      variants={variants ?? blockItemVariants}
+      initial="initial"
+      animate="animate"
+      exit="initial"
+      whileHover={isDragging ? undefined : { scale: 1.02 }}
+      whileTap={isDragging ? undefined : { scale: 0.95 }}
       onMouseDown={handleMouseDown}
       className="tt-class-block"
       style={{
@@ -96,6 +108,6 @@ export default function Block({
       >
       <span>{text}</span>
       <small className="tt-class-sub">Sample caption</small>
-    </div>
+    </motion.div>
   );
 }

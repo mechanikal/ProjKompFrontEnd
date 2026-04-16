@@ -27,16 +27,16 @@ export const weekendRowVariants: Variants = {
     paddingBottom: 0,
     overflow: "hidden",
   },
-  animate: {
+  animate: (targetHeight: number) => ({
     opacity: 1,
-    height: "auto",
+    height: targetHeight,
     marginTop: 0,
     marginBottom: 0,
     paddingTop: 0,
     paddingBottom: 0,
     overflow: "hidden",
     transition: springTransition,
-  },
+  }),
   exit: {
     opacity: 0,
     height: 0,

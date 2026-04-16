@@ -7,6 +7,8 @@ import { Slider } from "primereact/slider";
 import { InputTextarea } from "primereact/inputtextarea";
 import { BlockData } from "../utils/ClassBlockUtils";
 import { cloneBlockData, hasDraftChanges } from "../utils/EditBarUtils";
+import { motion } from "framer-motion";
+import { hoverTapScale, springTransition } from "../utils/MotionUtils";
 
 const NUMBERED_TERMS = Array.from({ length: 15 }, (_, index) => index + 1);
 
@@ -281,7 +283,9 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onSave, onHide, onDelete })
             disabled={!draft}
             onClick={() => draft && onDelete(draft.id)}
           />
-          <Button label="NOWY BLOK" className="tt-new-block-btn" onClick={onHide} />
+          <motion.div layout transition={springTransition} {...hoverTapScale}>
+            <Button label="NOWY BLOK" className="tt-new-block-btn" onClick={onHide} />
+          </motion.div>
         </div>
       </div>
     </div>

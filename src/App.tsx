@@ -2,6 +2,8 @@ import { useMemo, useState, useEffect } from "react";
 import Timetable from "./components/Timetable";
 import footerLogo from "./assets/logo-pl.png";
 import { ThemeMode, THEME_STORAGE_KEY, getPreferredTheme } from "./utils/ThemeUtils";
+import { motion } from "framer-motion";
+import { hoverTapScale } from "./utils/MotionUtils";
 import "./App.css";
 
 function useWindowSize() {
@@ -83,7 +85,7 @@ function App() {
           >
             <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
           </button>
-          <button type="button" className="app-login-btn">Logowanie</button>
+          <motion.button type="button" className="app-login-btn" {...hoverTapScale}>Logowanie</motion.button>
           <span className="app-avatar" aria-hidden="true" />
         </div>
       </header>

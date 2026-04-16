@@ -13,6 +13,8 @@ import { InputText } from "primereact/inputtext";
 import { Toast } from "primereact/toast";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import { ThemeMode } from "../utils/ThemeUtils";
+import { AnimatePresence, motion } from "framer-motion";
+import { blockItemVariants, blockListVariants, springTransition } from "../utils/MotionUtils";
 
 type TimetableProps = {
   gridProps: GridProps;
@@ -30,10 +32,21 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     const [selectedBlockId, setSelectedBlockId] = useState<number | null>(null);
     const rightPanelRef = useRef<HTMLElement | null>(null);
     const toast = useRef<Toast>(null);
+    const [showWeekends, setShowWeekends] = useState(true);
 
-    const currentGridProps = useMemo(() => buildCurrentGridProps(gridProps, rowHeights), [gridProps, rowHeights]);
+    const effectiveRowHeights = useMemo(
+        () => (showWeekends ? rowHeights : rowHeights.map((height, index) => (index >= 5 ? 0 : height))),
+        [rowHeights, showWeekends],
+    );
+    const currentGridProps = useMemo(() => buildCurrentGridProps(gridProps, effectiveRowHeights), [gridProps, effectiveRowHeights]);
     const selectedBlock = blocksData.find(b => b.id === selectedBlockId) || null;
     const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
+    const visibleBlocks = useMemo(
+        () => (showWeekends
+            ? blocksData
+            : blocksData.filter((block) => block.row < 5 || block.row === -1 || block.col === -1)),
+        [blocksData, showWeekends],
+    );
 
     useEffect(() => {
         onEditBarVisibilityChange?.(selectedBlockId !== null);
@@ -247,6 +260,12 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                     <span className="tt-plan-chip">nazwa grupy</span>
                     <Button icon="pi pi-plus" text rounded className="tt-icon-btn tt-chip-add-btn" />
                     <div className="tt-plan-row-spacer" />
+                    <Button
+                        label={showWeekends ? "ukryj weekend" : "pokaz weekend"}
+                        outlined
+                        className="tt-weekend-toggle-btn"
+                        onClick={() => setShowWeekends((previous) => !previous)}
+                    />
                     <Button icon="pi pi-refresh" rounded outlined className="tt-icon-btn tt-refresh-btn" />
                 </div>
 
@@ -256,19 +275,43 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                     ))}
                 </div>
 
-                <div className="tt-board" style={{ position: "relative", width: `${boardWidth}px` }}>
-                    <TimetableGrid rows={rows} cols={cols} gridHeight={gridHeight} gridWidth={gridWidth} rowHeights={rowHeights} StartPoint={currentGridProps.StartPoint} Bin={currentGridProps.Bin} />
-                    {blocksData.map((block) => (
-                        <ClassBlock
-                            gridProps={gridProps}
-                            handlePickup={handleBlockPickup}
-                            handleDrop={handleBlockDrop}
-                            key={block.id}
-                            theme={theme}
-                            blockData={block}
-                        />
-                    ))}
-                </div>
+                <motion.div
+                    layout
+                    transition={springTransition}
+                    className="tt-board"
+                    style={{ position: "relative", width: `${boardWidth}px` }}
+                >
+                    <TimetableGrid
+                        rows={rows}
+                        cols={cols}
+                        gridHeight={gridHeight}
+                        gridWidth={gridWidth}
+                        rowHeights={effectiveRowHeights}
+                        StartPoint={currentGridProps.StartPoint}
+                        Bin={currentGridProps.Bin}
+                        showWeekends={showWeekends}
+                    />
+                    <motion.div
+                        className="tt-block-layer"
+                        variants={blockListVariants}
+                        initial="initial"
+                        animate="animate"
+                    >
+                        <AnimatePresence mode="popLayout" initial={false}>
+                            {visibleBlocks.map((block) => (
+                                <ClassBlock
+                                    gridProps={gridProps}
+                                    handlePickup={handleBlockPickup}
+                                    handleDrop={handleBlockDrop}
+                                    key={block.id}
+                                    theme={theme}
+                                    blockData={block}
+                                    variants={blockItemVariants}
+                                />
+                            ))}
+                        </AnimatePresence>
+                    </motion.div>
+                </motion.div>
 
                 <div className="tt-bottom-row">
                     <div className="tt-bottom-nav">
