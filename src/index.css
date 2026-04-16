@@ -291,16 +291,17 @@ border: 1px solid var(--border-soft);
 .timetable-unified-container {
   position: relative;
   background: var(--surface-main);
-  border: 1px solid var(--border-soft);
+  border: 1px solid #E2E8F0;
   border-radius: 8px;
   overflow: hidden;
   transition: background-color 0.3s ease, border-color 0.3s ease;
+  box-sizing: border-box;
 }
 
 .timetable-corner-cell {
   background: #F8FAFC;
-  border-right: 1px solid var(--border-soft);
-  border-bottom: 1px solid var(--border-soft);
+  border-right: 1px solid #E2E8F0;
+  border-bottom: 1px solid #E2E8F0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -311,12 +312,16 @@ border: 1px solid var(--border-soft);
   align-items: center;
   justify-content: center;
   background: #F8FAFC;
-  border-right: 1px solid var(--border-soft);
-  border-bottom: 1px solid var(--border-soft);
+  border-right: 1px solid #E2E8F0;
+  border-bottom: 1px solid #E2E8F0;
   font-size: 10px;
   font-weight: 600;
   color: var(--text-main);
   transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.timetable-hour-header--last {
+  border-right: none;
 }
 
 .timetable-day-header {
@@ -324,12 +329,16 @@ border: 1px solid var(--border-soft);
   align-items: center;
   justify-content: center;
   background: #F8FAFC;
-  border-right: 1px solid var(--border-soft);
-  border-bottom: 1px solid var(--border-soft);
+  border-right: 1px solid #E2E8F0;
+  border-bottom: 1px solid #E2E8F0;
   font-size: 10px;
   font-weight: 600;
   color: var(--text-main);
   transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.timetable-day-header--last {
+  border-bottom: none;
 }
 
 .timetable-cell {
@@ -337,6 +346,14 @@ border: 1px solid var(--border-soft);
   border-right: 1px solid var(--border-grid-subtle);
   border-bottom: 1px solid var(--border-grid-subtle);
   transition: var(--transition-theme);
+}
+
+.timetable-cell--last-col {
+  border-right: none;
+}
+
+.timetable-cell--last-row {
+  border-bottom: none;
 }
 
 /* Remove old styles that are no longer needed */

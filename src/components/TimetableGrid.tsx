@@ -40,27 +40,40 @@ const TimetableGrid: React.FC<GridProps> = ({ rows, cols, gridHeight, gridWidth,
       <div className="timetable-corner-cell" />
 
       {/* Top row: Hour headers */}
-      {hours.map((hour) => (
-        <div key={`header-${hour}`} className="timetable-hour-header">
+      {hours.map((hour, hourIndex) => (
+        <div 
+          key={`header-${hour}`} 
+          className={`timetable-hour-header ${hourIndex === cols - 1 ? 'timetable-hour-header--last' : ''}`}
+        >
           {hour}
         </div>
       ))}
 
       {/* Left column: Day headers + Grid cells */}
-      {dayRows.map((row) => (
+      {dayRows.map((row, rowIndex) => (
         <React.Fragment key={`row-${row.day}`}>
           {/* Day header for this row */}
-          <div className="timetable-day-header">
+          <div className={`timetable-day-header ${rowIndex === rows - 1 ? 'timetable-day-header--last' : ''}`}>
             {row.day}
           </div>
 
           {/* Grid cells for this row */}
-          {Array.from({ length: cols }).map((_, colIndex) => (
-            <div 
-              key={`cell-${row.day}-${colIndex}`} 
-              className="timetable-cell"
-            />
-          ))}
+          {Array.from({ length: cols }).map((_, colIndex) => {
+            const isLastCol = colIndex === cols - 1;
+            const isLastRow = rowIndex === rows - 1;
+            const cellClasses = [
+              'timetable-cell',
+              isLastCol ? 'timetable-cell--last-col' : '',
+              isLastRow ? 'timetable-cell--last-row' : '',
+            ].filter(Boolean).join(' ');
+            
+            return (
+              <div 
+                key={`cell-${row.day}-${colIndex}`} 
+                className={cellClasses}
+              />
+            );
+          })}
         </React.Fragment>
       ))}
 
