@@ -75,7 +75,7 @@ export default function Block({
       animate="animate"
       exit="exit"
       whileHover={isDragging ? undefined : { scale: 1.02 }}
-      whileTap={isDragging ? undefined : { scale: 0.95 }}
+      whileTap={isDragging ? undefined : { scale: 0.98 }}
       onMouseDown={handleMouseDown}
       className="tt-class-block"
       style={{
