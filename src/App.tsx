@@ -46,16 +46,16 @@ function App() {
   const contentWidth = isEditBarVisible
     ? Math.min(980, Math.max(760, width * 0.72))
     : Math.min(1280, Math.max(760, width * 0.92));
-  const CELL_WIDTH_BONUS = 17;
-  const CELL_HEIGHT_BONUS = 5;
+  const CELL_WIDTH_BONUS = 8;
+  const CELL_HEIGHT_BONUS = 2;
 
   // Keep grid math on integer pixels to avoid subpixel drift between cells and blocks.
   const rawGridWidth = contentWidth - 74;
-  const colWidth = Math.max(52, Math.floor(rawGridWidth / 12) + CELL_WIDTH_BONUS);
+  const colWidth = Math.max(48, Math.floor(rawGridWidth / 12) + CELL_WIDTH_BONUS);
   const gridWidth = colWidth * 12;
 
-  const rawGridHeight = Math.min(420, Math.max(280, height * 0.42));
-  const rowHeight = Math.max(36, Math.floor(rawGridHeight / 5) + CELL_HEIGHT_BONUS);
+  const rawGridHeight = Math.min(380, Math.max(260, height * 0.38));
+  const rowHeight = Math.max(34, Math.floor(rawGridHeight / 5) + CELL_HEIGHT_BONUS);
   const gridHeight = rowHeight * 5;
 
   const gridProps = useMemo(() => ({
