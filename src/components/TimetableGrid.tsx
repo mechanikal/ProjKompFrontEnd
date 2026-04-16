@@ -1,24 +1,18 @@
 import React from "react";
 import { GridProps } from "../utils/TimeGridUtils";
-import { AnimatePresence, motion } from "framer-motion";
-import { springTransition, weekendRowVariants } from "../utils/MotionUtils";
+import { motion } from "framer-motion";
+import { springTransition } from "../utils/MotionUtils";
 
 
-type TimetableGridProps = GridProps & {
-  showWeekends: boolean;
-};
-
-const TimetableGrid: React.FC<TimetableGridProps> = ({ rows, cols, gridHeight, gridWidth, rowHeights, StartPoint, Bin, showWeekends }) => {
+const TimetableGrid: React.FC<GridProps> = ({ rows, cols, gridHeight, gridWidth, rowHeights, StartPoint, Bin }) => {
   const cellSize = { x: gridWidth / cols, y: gridHeight / rows };
-  const weekdays = ["PON", "WT", "ŚR", "CZW", "PT", "SOB", "ND"];
-  const dayRows = weekdays.slice(0, rows).map((day, index) => ({
+  const weekdays = ["PON", "WT", "ŚR", "CZW", "PT"];
+  const dayRows = weekdays.map((day, index) => ({
     day,
     index,
-    isWeekend: index >= 5,
     heightPx: Math.max(0, rowHeights[index] * cellSize.y),
   }));
-  const visibleRows = dayRows.filter((row) => showWeekends || !row.isWeekend);
-  const visibleGridHeight = visibleRows.reduce((sum, row) => sum + row.heightPx, 0);
+  const visibleGridHeight = dayRows.reduce((sum, row) => sum + row.heightPx, 0);
 
   return (
     <div
@@ -32,7 +26,7 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({ rows, cols, gridHeight, g
         height: `${visibleGridHeight}px`,
       }}
     >
-      {dayRows.filter((row) => !row.isWeekend).map((row) => (
+      {dayRows.map((row) => (
         <div
           key={row.day}
           className="timetable-day-row"
@@ -41,22 +35,6 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({ rows, cols, gridHeight, g
           <span className="timetable-day-pill">{row.day}</span>
         </div>
       ))}
-      <AnimatePresence initial={false}>
-        {showWeekends && dayRows.filter((row) => row.isWeekend).map((row) => (
-          <motion.div
-            key={row.day}
-            variants={weekendRowVariants}
-            custom={row.heightPx}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            className="timetable-day-row timetable-day-row-weekend"
-            style={{ transformOrigin: "top" }}
-          >
-            <span className="timetable-day-pill">{row.day}</span>
-          </motion.div>
-        ))}
-      </AnimatePresence>
     </div>
 
     <motion.div
@@ -71,7 +49,7 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({ rows, cols, gridHeight, g
         top: `${StartPoint.y}px`,
       }}
     >
-      {dayRows.filter((row) => !row.isWeekend).map((row) => (
+      {dayRows.map((row) => (
         <div
           key={row.day}
           className="timetable-grid-row"
@@ -85,27 +63,6 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({ rows, cols, gridHeight, g
           ))}
         </div>
       ))}
-      <AnimatePresence initial={false}>
-        {showWeekends && dayRows.filter((row) => row.isWeekend).map((row) => (
-          <motion.div
-            key={row.day}
-            variants={weekendRowVariants}
-            custom={row.heightPx}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            className="timetable-grid-row timetable-grid-row-weekend"
-            style={{
-              transformOrigin: "top",
-              gridTemplateColumns: `repeat(${cols}, ${cellSize.x}px)`,
-            }}
-          >
-            {Array.from({ length: cols }).map((_, colIndex) => (
-              <div key={`${row.day}-${colIndex}`} className="timetable-cell" />
-            ))}
-          </motion.div>
-        ))}
-      </AnimatePresence>
     </motion.div>
 
     <motion.div

@@ -55,15 +55,15 @@ function App() {
   const gridWidth = colWidth * 12;
 
   const rawGridHeight = Math.min(420, Math.max(280, height * 0.42));
-  const rowHeight = Math.max(36, Math.floor(rawGridHeight / 7) + CELL_HEIGHT_BONUS);
-  const gridHeight = rowHeight * 7;
+  const rowHeight = Math.max(36, Math.floor(rawGridHeight / 5) + CELL_HEIGHT_BONUS);
+  const gridHeight = rowHeight * 5;
 
   const gridProps = useMemo(() => ({
-    rows: 7,
+    rows: 5,
     cols: 12,
     gridWidth,
     gridHeight,
-    rowHeights: [1, 1, 1, 1, 1, 1, 1],
+    rowHeights: [1, 1, 1, 1, 1],
     StartPoint: { x: 54, y: 0 },
     Bin: {
       StartPoint: { x: 54 + gridWidth - 230, y: gridHeight + 18 },
