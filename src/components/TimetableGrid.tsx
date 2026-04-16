@@ -21,9 +21,7 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({ rows, cols, gridHeight, g
   const visibleGridHeight = visibleRows.reduce((sum, row) => sum + row.heightPx, 0);
 
   return (
-    <motion.div
-      layout
-      transition={springTransition}
+    <div
       className="timetable-grid-wrap"
       style={{ height: `${visibleGridHeight + Bin.height + 26}px` }}
     >
@@ -35,15 +33,13 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({ rows, cols, gridHeight, g
       }}
     >
       {dayRows.filter((row) => !row.isWeekend).map((row) => (
-        <motion.div
-          layout
-          transition={springTransition}
+        <div
           key={row.day}
           className="timetable-day-row"
           style={{ height: `${row.heightPx}px` }}
         >
           <span className="timetable-day-pill">{row.day}</span>
-        </motion.div>
+        </div>
       ))}
       <AnimatePresence initial={false}>
         {showWeekends && dayRows.filter((row) => row.isWeekend).map((row) => (
@@ -76,9 +72,7 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({ rows, cols, gridHeight, g
       }}
     >
       {dayRows.filter((row) => !row.isWeekend).map((row) => (
-        <motion.div
-          layout
-          transition={springTransition}
+        <div
           key={row.day}
           className="timetable-grid-row"
           style={{
@@ -89,7 +83,7 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({ rows, cols, gridHeight, g
           {Array.from({ length: cols }).map((_, colIndex) => (
             <div key={`${row.day}-${colIndex}`} className="timetable-cell" />
           ))}
-        </motion.div>
+        </div>
       ))}
       <AnimatePresence initial={false}>
         {showWeekends && dayRows.filter((row) => row.isWeekend).map((row) => (
@@ -129,7 +123,7 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({ rows, cols, gridHeight, g
       <span className="timetable-bin-title">KOSZ</span>
       <span className="timetable-bin-subtitle">upusc blok, aby usunac</span>
     </motion.div>
-    </motion.div>
+    </div>
   );
 };
 
