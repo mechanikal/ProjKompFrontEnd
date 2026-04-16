@@ -10,17 +10,18 @@ import EditBar from "./EditBar";
 import { buildCurrentGridProps } from "../utils/TimetableLayoutUtils";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
-import { Tag } from "primereact/tag";
 import { Toast } from "primereact/toast";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
+import { ThemeMode } from "../utils/ThemeUtils";
 
 type TimetableProps = {
   gridProps: GridProps;
+    theme: ThemeMode;
   onEditBarVisibilityChange?: (isVisible: boolean) => void;
   //todo: add initial blocks data as prop
 };
 
-const Timetable: React.FC<TimetableProps> = ({ gridProps, onEditBarVisibilityChange }) => {
+const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibilityChange }) => {
     const { rows, cols, gridHeight, gridWidth } = gridProps;
     const cellSize = { x: gridWidth / cols, y: gridHeight / rows };
     const [rowHeights, setRowHeights] = useState(Array(rows).fill(1));
@@ -32,6 +33,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, onEditBarVisibilityCha
 
     const currentGridProps = useMemo(() => buildCurrentGridProps(gridProps, rowHeights), [gridProps, rowHeights]);
     const selectedBlock = blocksData.find(b => b.id === selectedBlockId) || null;
+    const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
 
     useEffect(() => {
         onEditBarVisibilityChange?.(selectedBlockId !== null);
@@ -221,20 +223,29 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, onEditBarVisibilityCha
             <section className="tt-left-panel">
                 <div className="tt-prompt-row">
                     <Button icon="pi pi-link" rounded text className="tt-icon-btn tt-prompt-link" />
-                    <InputText placeholder="enter prompt" className="tt-prompt-input" />
+                    <InputText placeholder="Wpisz prompt" className="tt-prompt-input" />
                     <Button icon="pi pi-send" rounded text className="tt-icon-btn" />
                 </div>
 
                 <div className="tt-plan-row">
                     <span>powiadomienia e-mail</span>
-                    <span className="tt-mail-toggle" aria-hidden="true"><span /></span>
+                    <label className="tt-mail-toggle" aria-label="Powiadomienia e-mail">
+                        <input
+                            type="checkbox"
+                            checked={emailNotificationsEnabled}
+                            onChange={(event) => setEmailNotificationsEnabled(event.target.checked)}
+                        />
+                        <span className="tt-mail-toggle-track" aria-hidden="true">
+                            <span className="tt-mail-toggle-thumb" />
+                        </span>
+                    </label>
                 </div>
 
                 <div className="tt-plan-row tt-plan-tags-row">
                     <span>plany:</span>
-                    <Tag value="nazwa grupy" severity="info" />
-                    <Tag value="nazwa grupy" severity="info" />
-                    <Button icon="pi pi-plus" text rounded className="tt-icon-btn" />
+                    <span className="tt-plan-chip">nazwa grupy</span>
+                    <span className="tt-plan-chip">nazwa grupy</span>
+                    <Button icon="pi pi-plus" text rounded className="tt-icon-btn tt-chip-add-btn" />
                     <div className="tt-plan-row-spacer" />
                     <Button icon="pi pi-refresh" rounded outlined className="tt-icon-btn tt-refresh-btn" />
                 </div>
@@ -253,6 +264,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, onEditBarVisibilityCha
                             handlePickup={handleBlockPickup}
                             handleDrop={handleBlockDrop}
                             key={block.id}
+                            theme={theme}
                             blockData={block}
                         />
                     ))}

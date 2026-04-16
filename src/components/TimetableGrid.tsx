@@ -4,7 +4,7 @@ import { GridProps } from "../utils/TimeGridUtils";
 
 const TimetableGrid: React.FC<GridProps> = ({ rows, cols, gridHeight, gridWidth, rowHeights, StartPoint, Bin }) => {
   const cellSize = { x: gridWidth / cols, y: gridHeight / rows };
-  const weekdays = ["MON", "TUE", "WEN", "THD", "FRI", "SAT", "SUN"];
+  const weekdays = ["PON", "WT", "ŚR", "CZW", "PT", "SOB", "ND"];
 
   const gridTemplateRows = rowHeights.map(height => `${height*cellSize.y}px`).join(' ');
   return (
@@ -51,8 +51,8 @@ const TimetableGrid: React.FC<GridProps> = ({ rows, cols, gridHeight, gridWidth,
         top: Bin.StartPoint.y,
       }}
       >
-      <span className="timetable-bin-title">BIN</span>
-      <span className="timetable-bin-subtitle">drop block to delete</span>
+      <span className="timetable-bin-title">KOSZ</span>
+      <span className="timetable-bin-subtitle">upusc blok, aby usunac</span>
     </div>
     </div>
   );

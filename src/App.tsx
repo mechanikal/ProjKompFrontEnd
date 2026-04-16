@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import Timetable from "./components/Timetable";
 import footerLogo from "./assets/logo-pl.png";
+import { ThemeMode, THEME_STORAGE_KEY, normalizeTheme } from "./utils/ThemeUtils";
 import "./App.css";
 
 function useWindowSize() {
@@ -29,6 +30,23 @@ function useWindowSize() {
 function App() {
   const { width, height } = useWindowSize();
   const [isEditBarVisible, setIsEditBarVisible] = useState(false);
+  const [theme, setTheme] = useState<ThemeMode>(() => {
+    if (typeof window === "undefined") {
+      return "dark";
+    }
+
+    return normalizeTheme(window.localStorage.getItem(THEME_STORAGE_KEY));
+  });
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
+
+  const handleThemeToggle = () => {
+    setTheme((previousTheme) => (previousTheme === "dark" ? "light" : "dark"));
+  };
+
   const contentWidth = isEditBarVisible
     ? Math.min(980, Math.max(760, width * 0.72))
     : Math.min(1280, Math.max(760, width * 0.92));
@@ -61,9 +79,17 @@ function App() {
   return (
     <div className="app-shell">
       <header className="app-topbar">
-        <div className="app-title">WIRTUALNY PLAN ZAJEC POLITECHNIKI LODZKIEJ</div>
+        <div className="app-title">WIRTUALNY PLAN ZAJĘĆ POLITECHNIKI ŁÓDZKIEJ</div>
         <div className="app-user">
-          <span>Logowanie</span>
+          <button
+            type="button"
+            className="app-theme-toggle"
+            aria-label="Przelacz motyw"
+            onClick={handleThemeToggle}
+          >
+            <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
+          </button>
+          <button type="button" className="app-login-btn">Logowanie</button>
           <span className="app-avatar" aria-hidden="true" />
         </div>
       </header>
@@ -71,6 +97,7 @@ function App() {
       <main className="app-main">
         <Timetable
           gridProps={gridProps}
+          theme={theme}
           onEditBarVisibilityChange={setIsEditBarVisible}
         />
       </main>

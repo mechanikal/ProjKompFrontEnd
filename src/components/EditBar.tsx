@@ -45,6 +45,9 @@ export type EditBarData = {
 const EditBar: React.FC<EditBarData> = ({ blockData, onSave, onHide, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<BlockData | null>(cloneBlockData(blockData));
+  const defaultClassColor = typeof window === "undefined"
+    ? "#5f9fd1"
+    : getComputedStyle(document.documentElement).getPropertyValue("--class-color-default").trim() || "#5f9fd1";
   const previousIdRef = useRef<number | null>(blockData?.id ?? null);
   const previousBlockRef = useRef<BlockData | null>(cloneBlockData(blockData));
   const draftRef = useRef<BlockData | null>(cloneBlockData(blockData));
@@ -254,7 +257,7 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onSave, onHide, onDelete })
           <ColorPicker
               id="block-color"
               format="hex"
-              value={(draft?.color ?? "#5f9fd1").replace("#", "")}
+              value={(draft?.color ?? defaultClassColor).replace("#", "")}
               disabled={disabled}
               onChange={(e) => handleFieldChange("color", `#${String(e.value)}`)}
             />

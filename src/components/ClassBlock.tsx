@@ -1,19 +1,22 @@
 import { useState, useEffect } from "react";
 import { BlockData } from "../utils/ClassBlockUtils";
 import { GridProps } from "../utils/TimeGridUtils";
+import { getClassDisplayColor, getReadableTextColor, ThemeMode } from "../utils/ThemeUtils";
 
 type BlockProps = {
   handleDrop: (blockId: number, x: number, y: number, hourSpan: number) => {x: number, y: number};
   handlePickup: (blockId: number, hourSpan: number) => void;
   blockData: BlockData;
   gridProps: GridProps;
+  theme: ThemeMode;
 };
 
 export default function Block({
   blockData: { id: blockId, x, y, hourSpan, color, text },
   gridProps: { gridWidth, gridHeight, cols, rows },
   handleDrop,
-  handlePickup
+  handlePickup,
+  theme
 
 }: BlockProps) {
   const VISUAL_OFFSET_X = 8;
@@ -23,6 +26,8 @@ export default function Block({
   const [position, setPosition] = useState({ x: x, y: y });
   const [isDragging, setIsDragging] = useState(false);
   const cellSize = { x: gridWidth /cols, y: gridHeight / rows };
+  const classDisplayColor = getClassDisplayColor(color, theme);
+  const classTextColor = getReadableTextColor(classDisplayColor);
 
   useEffect(() => {
     if (!isDragging) {
@@ -65,8 +70,8 @@ export default function Block({
         position: "absolute",
         width: Math.max(1, Math.round(cellSize.x * hourSpan) + BLOCK_WIDTH_ADJUST),
         height: Math.max(1, Math.round(cellSize.y) + BLOCK_HEIGHT_ADJUST),
-        backgroundColor: color,
-        color: "#f4f8ff",
+        backgroundColor: classDisplayColor,
+        color: classTextColor,
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
@@ -76,7 +81,7 @@ export default function Block({
         cursor: isDragging ? "grabbing" : "grab",
         borderRadius: 4,
         userSelect: "none",
-        boxShadow: isDragging ? "0 0 0 1px rgba(255,255,255,0.35)" : "0 1px 10px rgba(0,0,0,0.35)",
+        boxShadow: isDragging ? "var(--class-shadow-drag)" : "var(--class-shadow-rest)",
         transition: isDragging
           ? "none"
           : "left 240ms ease, top 240ms ease, width 240ms ease, height 240ms ease, box-shadow 200ms ease, filter 200ms ease",
@@ -84,7 +89,7 @@ export default function Block({
         fontWeight: 600,
         letterSpacing: "0.2px",
         textAlign: "center",
-        padding: "2px 6px",
+        padding: "6px 10px",
         filter: isDragging ? "brightness(1.06)" : "none",
         overflow: "hidden",
       }}

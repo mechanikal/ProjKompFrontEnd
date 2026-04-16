@@ -1,0 +1,66 @@
+export type ThemeMode = "dark" | "light";
+
+export const THEME_STORAGE_KEY = "projkomp.theme";
+
+export function normalizeTheme(value: string | null | undefined): ThemeMode {
+  return value === "light" ? "light" : "dark";
+}
+
+function clampChannel(value: number) {
+  return Math.min(255, Math.max(0, Math.round(value)));
+}
+
+function hexToRgb(hex: string) {
+  const normalized = hex.replace("#", "").trim();
+  const safeHex = normalized.length === 3
+    ? normalized
+        .split("")
+        .map((char) => `${char}${char}`)
+        .join("")
+    : normalized;
+
+  if (!/^[0-9a-fA-F]{6}$/.test(safeHex)) {
+    return { r: 79, g: 113, b: 165 };
+  }
+
+  return {
+    r: Number.parseInt(safeHex.slice(0, 2), 16),
+    g: Number.parseInt(safeHex.slice(2, 4), 16),
+    b: Number.parseInt(safeHex.slice(4, 6), 16),
+  };
+}
+
+function rgbToHex(r: number, g: number, b: number) {
+  return `#${clampChannel(r).toString(16).padStart(2, "0")}${clampChannel(g).toString(16).padStart(2, "0")}${clampChannel(b).toString(16).padStart(2, "0")}`;
+}
+
+function toLinear(channel: number) {
+  const normalized = channel / 255;
+  return normalized <= 0.03928
+    ? normalized / 12.92
+    : ((normalized + 0.055) / 1.055) ** 2.4;
+}
+
+function relativeLuminance(hexColor: string) {
+  const { r, g, b } = hexToRgb(hexColor);
+  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+}
+
+export function getClassDisplayColor(color: string, theme: ThemeMode) {
+  if (theme === "dark") {
+    return color;
+  }
+
+  const { r, g, b } = hexToRgb(color);
+  const mixWithWhite = 0.68;
+  const nextR = r + (255 - r) * mixWithWhite;
+  const nextG = g + (255 - g) * mixWithWhite;
+  const nextB = b + (255 - b) * mixWithWhite;
+
+  return rgbToHex(nextR, nextG, nextB);
+}
+
+export function getReadableTextColor(backgroundColor: string) {
+  const luminance = relativeLuminance(backgroundColor);
+  return luminance > 0.58 ? "var(--text-strong)" : "var(--text-on-accent)";
+}
