@@ -91,7 +91,7 @@ export default function Block({
         left: Math.round(position.x) + VISUAL_OFFSET_X,
         top: Math.round(position.y) + VISUAL_OFFSET_Y,
         cursor: isDragging ? "grabbing" : "grab",
-        borderRadius: 4,
+        borderRadius: 0,
         userSelect: "none",
         boxShadow: isDragging ? "var(--class-shadow-drag)" : "var(--class-shadow-rest)",
         transition: isDragging
