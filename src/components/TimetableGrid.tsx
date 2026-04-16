@@ -19,7 +19,7 @@ const TimetableGrid: React.FC<GridProps> = ({ rows, cols, gridHeight, gridWidth,
   const headerHeight = Math.max(24, Math.round(cellSize.y * 0.65));
   
   // CSS Grid template: first row = header, first col = days, rest = grid cells
-  const gridTemplateRows = `${headerHeight}px repeat(${rows}, 1fr)`;
+  const gridTemplateRows = `${headerHeight}px ${dayRows.map((row) => `${row.heightPx}px`).join(" ")}`;
   const gridTemplateColumns = `50px repeat(${cols}, ${cellSize.x}px)`;
 
   return (
