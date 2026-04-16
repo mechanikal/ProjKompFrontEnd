@@ -64,9 +64,9 @@ function App() {
     gridWidth,
     gridHeight,
     rowHeights: [1, 1, 1, 1, 1],
-    StartPoint: { x: 54, y: 0 },
+    StartPoint: { x: 50, y: 0 },
     Bin: {
-      StartPoint: { x: 54 + gridWidth - 230, y: gridHeight + 18 },
+      StartPoint: { x: 50 + gridWidth - 230, y: gridHeight + 18 },
       height: 62,
       width: 230,
     } 
