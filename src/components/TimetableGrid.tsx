@@ -51,7 +51,7 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({ rows, cols, gridHeight, g
             animate="animate"
             exit="exit"
             className="timetable-day-row timetable-day-row-weekend"
-            style={{ overflow: "hidden" }}
+            style={{ transformOrigin: "top" }}
           >
             <span className="timetable-day-pill">{row.day}</span>
           </motion.div>
@@ -96,7 +96,7 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({ rows, cols, gridHeight, g
             exit="exit"
             className="timetable-grid-row timetable-grid-row-weekend"
             style={{
-              overflow: "hidden",
+              transformOrigin: "top",
               gridTemplateColumns: `repeat(${cols}, ${cellSize.x}px)`,
             }}
           >

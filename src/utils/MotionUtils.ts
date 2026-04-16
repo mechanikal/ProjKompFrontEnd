@@ -19,33 +19,18 @@ export const hoverTapScale = {
 
 export const weekendRowVariants: Variants = {
   initial: {
+    scaleY: 0,
     opacity: 0,
-    height: 0,
-    marginTop: 0,
-    marginBottom: 0,
-    paddingTop: 0,
-    paddingBottom: 0,
-    overflow: "hidden",
   },
   animate: (targetHeight: number) => ({
+    scaleY: 1,
     opacity: 1,
-    height: targetHeight,
-    marginTop: 0,
-    marginBottom: 0,
-    paddingTop: 0,
-    paddingBottom: 0,
-    overflow: "hidden",
-    transition: springTransition,
+    transition: { ...springTransition, duration: 0.35 },
   }),
   exit: {
+    scaleY: 0,
     opacity: 0,
-    height: 0,
-    marginTop: 0,
-    marginBottom: 0,
-    paddingTop: 0,
-    paddingBottom: 0,
-    overflow: "hidden",
-    transition: springTransition,
+    transition: { ...springTransition, duration: 0.35 },
   },
 };
 
