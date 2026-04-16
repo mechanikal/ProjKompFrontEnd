@@ -7,80 +7,80 @@ import { springTransition } from "../utils/MotionUtils";
 const TimetableGrid: React.FC<GridProps> = ({ rows, cols, gridHeight, gridWidth, rowHeights, StartPoint, Bin }) => {
   const cellSize = { x: gridWidth / cols, y: gridHeight / rows };
   const weekdays = ["PON", "WT", "ŚR", "CZW", "PT"];
+  const hours = Array.from({ length: cols }, (_, index) => `${8 + index}:00`);
+  
   const dayRows = weekdays.map((day, index) => ({
     day,
     index,
     heightPx: Math.max(0, rowHeights[index] * cellSize.y),
   }));
+  
   const visibleGridHeight = dayRows.reduce((sum, row) => sum + row.heightPx, 0);
+  const headerHeight = Math.max(24, Math.round(cellSize.y * 0.65));
+  
+  // CSS Grid template: first row = header, first col = days, rest = grid cells
+  const gridTemplateRows = `${headerHeight}px repeat(${rows}, 1fr)`;
+  const gridTemplateColumns = `50px repeat(${cols}, ${cellSize.x}px)`;
 
   return (
-    <div
-      className="timetable-grid-wrap"
-      style={{ height: `${visibleGridHeight + Bin.height + 26}px` }}
-    >
-    <div
-      className="timetable-day-rail"
-      style={{
-        top: `${StartPoint.y}px`,
-        height: `${visibleGridHeight}px`,
-      }}
-    >
-      {dayRows.map((row) => (
-        <div
-          key={row.day}
-          className="timetable-day-row"
-          style={{ height: `${row.heightPx}px` }}
-        >
-          <span className="timetable-day-pill">{row.day}</span>
-        </div>
-      ))}
-    </div>
-
     <motion.div
       layout
       transition={springTransition}
-      className="timetable-grid"
+      className="timetable-unified-container"
       style={{
-        width: `${gridWidth}px`,
-        height: `${visibleGridHeight}px`,
-        position: "absolute",
-        left: `${StartPoint.x}px`,
-        top: `${StartPoint.y}px`,
+        display: "grid",
+        gridTemplateRows: gridTemplateRows,
+        gridTemplateColumns: gridTemplateColumns,
+        gap: 0,
+        width: `${50 + gridWidth}px`,
+        height: `${headerHeight + visibleGridHeight}px`,
       }}
     >
+      {/* Top-left corner (empty cell) */}
+      <div className="timetable-corner-cell" />
+
+      {/* Top row: Hour headers */}
+      {hours.map((hour) => (
+        <div key={`header-${hour}`} className="timetable-hour-header">
+          {hour}
+        </div>
+      ))}
+
+      {/* Left column: Day headers + Grid cells */}
       {dayRows.map((row) => (
-        <div
-          key={row.day}
-          className="timetable-grid-row"
-          style={{
-            height: `${row.heightPx}px`,
-            gridTemplateColumns: `repeat(${cols}, ${cellSize.x}px)`,
-          }}
-        >
+        <React.Fragment key={`row-${row.day}`}>
+          {/* Day header for this row */}
+          <div className="timetable-day-header">
+            {row.day}
+          </div>
+
+          {/* Grid cells for this row */}
           {Array.from({ length: cols }).map((_, colIndex) => (
-            <div key={`${row.day}-${colIndex}`} className="timetable-cell" />
+            <div 
+              key={`cell-${row.day}-${colIndex}`} 
+              className="timetable-cell"
+            />
           ))}
-        </div>
+        </React.Fragment>
       ))}
-    </motion.div>
 
-    <motion.div
-      layout
-      transition={springTransition}
-      className="timetable-bin"
-      style={{
-        position: "absolute",
-        width: Bin.width,
-        height: Bin.height,
-        left: Bin.StartPoint.x,
-        top: Bin.StartPoint.y,
-      }}
+      {/* Bin (positioned absolutely within the grid container) */}
+      <motion.div
+        layout
+        transition={springTransition}
+        className="timetable-bin"
+        style={{
+          position: "absolute",
+          width: Bin.width,
+          height: Bin.height,
+          left: Bin.StartPoint.x,
+          top: Bin.StartPoint.y,
+        }}
       >
-      <span className="timetable-bin-title">KOSZ</span>
-      <span className="timetable-bin-subtitle">upusc blok, aby usunac</span>
+        <span className="timetable-bin-title">KOSZ</span>
+        <span className="timetable-bin-subtitle">upusc blok, aby usunac</span>
+      </motion.div>
     </motion.div>
-    </div>
   );
 };
 

@@ -203,18 +203,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     }
 
     const placedBlocksCount = blocksData.filter(block => block.col !== -1 && block.row !== -1).length;
-    const hours = Array.from({ length: cols }, (_, index) => `${8 + index}:00`);
-    const boardWidth = currentGridProps.StartPoint.x + currentGridProps.gridWidth;
-    const hourCellWidth = currentGridProps.gridWidth / currentGridProps.cols;
-    const hourRowHeight = Math.max(24, Math.round(cellSize.y * 0.65));
-    const boardInnerOffset = 6;
-    const hoursStyle = {
-        marginLeft: `${currentGridProps.StartPoint.x + boardInnerOffset}px`,
-        width: `${currentGridProps.gridWidth - boardInnerOffset * 2}px`,
-        height: `${hourRowHeight}px`,
-        gridTemplateColumns: `repeat(${cols}, ${hourCellWidth}px)`,
-        gap: 0,
-    } as const;
+    const boardWidth = 50 + currentGridProps.gridWidth;
 
     return (
         <div className="tt-layout" style={{ position: "relative" }}>
@@ -250,12 +239,6 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                     <Button icon="pi pi-plus" text rounded className="tt-icon-btn tt-chip-add-btn" />
                     <div className="tt-plan-row-spacer" />
                     <Button icon="pi pi-refresh" rounded outlined className="tt-icon-btn tt-refresh-btn" />
-                </div>
-
-                <div className="tt-hours-row" style={hoursStyle}>
-                    {hours.map((hour) => (
-                        <span key={hour} className="tt-hour-pill">{hour}</span>
-                    ))}
                 </div>
 
                 <motion.div

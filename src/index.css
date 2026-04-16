@@ -288,43 +288,100 @@ background: var(--surface-input);
 border: 1px solid var(--border-soft);
 }
 
-.tt-hours-row {
-display: grid;
-margin-bottom: 9px;
-align-items: stretch;
-transition: width 240ms ease, margin-left 240ms ease;
-will-change: width, margin-left;
+.timetable-unified-container {
+  position: relative;
+  background: var(--surface-main);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-.tt-hour-pill {
-display: flex;
-align-items: center;
-justify-content: center;
-flex: 1;
-height: 100%;
-width: 100%;
-font-size: 10px;
-font-weight: 600;
-color: var(--text-main);
-background: var(--surface-input);
-border-radius: 6px;
-border: 1px solid var(--border-soft);
-line-height: 1;
-transition: var(--transition-theme);
+.timetable-corner-cell {
+  background: var(--surface-input);
+  border-right: 1px solid var(--border-soft);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.timetable-hour-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-input);
+  border-right: 1px solid var(--border-soft);
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-main);
+  transition: var(--transition-theme);
+}
+
+.timetable-day-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-input);
+  border-right: 1px solid var(--border-soft);
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-main);
+  transition: var(--transition-theme);
+}
+
+.timetable-cell {
+  background: var(--surface-grid-cell);
+  border-right: 1px solid var(--border-grid-subtle);
+  border-bottom: 1px solid var(--border-grid-subtle);
+  transition: var(--transition-theme);
+}
+
+/* Remove old styles that are no longer needed */
+.timetable-grid-wrap {
+  display: none;
+}
+
+.timetable-day-rail {
+  display: none;
+}
+
+.timetable-day-row {
+  display: none;
+}
+
+.timetable-day-pill {
+  display: none;
+}
+
+.timetable-grid {
+  display: none;
+}
+
+.timetable-grid-row {
+  display: none;
 }
 
 .tt-board {
-border: 1px solid var(--border-soft);
-background: var(--surface-main);
-padding: 6px;
-overflow: hidden;
-transition: width 240ms ease, background-color 0.3s ease, border-color 0.3s ease;
-will-change: width;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-main);
+  padding: 0;
+  overflow: hidden;
+  transition: width 240ms ease, background-color 0.3s ease, border-color 0.3s ease;
+  will-change: width;
 }
 
+
 .tt-block-layer {
-position: absolute;
-inset: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.tt-block-layer > * {
+  pointer-events: auto;
 }
 
 .tt-bottom-row {
@@ -375,81 +432,21 @@ color: var(--text-muted);
 font-size: 12px;
 }
 
-.timetable-grid-wrap {
-position: relative;
-}
 
-.timetable-day-rail {
-position: absolute;
-left: 2px;
-width: 42px;
-display: flex;
-flex-direction: column;
-gap: 0;
-transition:
-left 240ms ease,
-height 240ms ease;
-will-change: left, height;
-overflow: hidden;
-}
-
-.timetable-day-row {
-display: flex;
-align-items: stretch;
-overflow: hidden;
-}
 
 .timetable-day-row-weekend {
 transform-origin: top;
 }
 
-.timetable-day-pill {
-display: flex;
-align-items: center;
-justify-content: center;
-flex: 1;
-width: 100%;
-height: 100%;
-background: var(--surface-input);
-border: 1px solid var(--border-soft);
-border-radius: 14px;
-font-size: 10px;
-font-weight: 600;
-color: var(--text-main);
-transition: var(--transition-theme);
-}
-
-.timetable-grid {
-border: 1px solid var(--border-grid-subtle);
-box-shadow: inset 0 0 0 1px var(--border-grid-subtle);
-box-sizing: border-box;
-display: flex;
-flex-direction: column;
-transition:
-left 240ms ease,
-top 240ms ease,
-width 240ms ease,
-height 240ms ease,
-background-color 0.3s ease,
-border-color 0.3s ease;
-will-change: left, top, width, height;
-overflow: hidden;
-}
-
-.timetable-grid-row {
-display: grid;
-overflow: hidden;
-}
-
 .timetable-grid-row-weekend {
-transform-origin: top;
+  transform-origin: top;
 }
 
 .timetable-cell {
-background: var(--surface-grid-cell);
-border: 1px solid var(--border-grid-subtle);
-box-sizing: border-box;
-transition: var(--transition-theme);
+  background: var(--surface-grid-cell);
+  border-right: 1px solid var(--border-grid-subtle);
+  border-bottom: 1px solid var(--border-grid-subtle);
+  transition: var(--transition-theme);
 }
 
 .timetable-bin {
