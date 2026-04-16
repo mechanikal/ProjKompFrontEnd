@@ -23,7 +23,7 @@ export default function Block({
   variants,
 
 }: BlockProps) {
-  const VISUAL_OFFSET_X = 0;
+  const VISUAL_OFFSET_X = 1;
   const VISUAL_OFFSET_Y = 1;
   const BLOCK_WIDTH_ADJUST = -4;
   const BLOCK_HEIGHT_ADJUST = -4;
