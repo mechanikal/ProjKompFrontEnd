@@ -24,7 +24,7 @@ export default function Block({
 
 }: BlockProps) {
   const VISUAL_OFFSET_X = 0;
-  const VISUAL_OFFSET_Y = 0;
+  const VISUAL_OFFSET_Y = 3;
   const BLOCK_WIDTH_ADJUST = -4;
   const BLOCK_HEIGHT_ADJUST = -4;
   const [position, setPosition] = useState({ x: x, y: y });
