@@ -66,4 +66,9 @@ export const blockItemVariants: Variants = {
     x: 0,
     transition: springTransition,
   },
+  exit: {
+    opacity: 0,
+    x: -12,
+    transition: { ...springTransition, duration: 0.15 },
+  },
 };

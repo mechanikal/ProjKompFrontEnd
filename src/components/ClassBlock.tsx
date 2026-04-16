@@ -68,12 +68,12 @@ export default function Block({
 
   return (
     <motion.div
-      layout
-      transition={springTransition}
+      layout={!isDragging}
+      transition={isDragging ? { duration: 0 } : springTransition}
       variants={variants ?? blockItemVariants}
       initial="initial"
       animate="animate"
-      exit="initial"
+      exit="exit"
       whileHover={isDragging ? undefined : { scale: 1.02 }}
       whileTap={isDragging ? undefined : { scale: 0.95 }}
       onMouseDown={handleMouseDown}
