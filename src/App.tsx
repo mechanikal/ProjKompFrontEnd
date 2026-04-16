@@ -57,6 +57,7 @@ function App() {
   const rawGridHeight = Math.min(380, Math.max(260, height * 0.38));
   const rowHeight = Math.max(34, Math.floor(rawGridHeight / 5) + CELL_HEIGHT_BONUS);
   const gridHeight = rowHeight * 5;
+  const headerHeight = Math.max(24, Math.round(rowHeight * 0.65));
 
   const gridProps = useMemo(() => ({
     rows: 5,
@@ -64,13 +65,13 @@ function App() {
     gridWidth,
     gridHeight,
     rowHeights: [1, 1, 1, 1, 1],
-    StartPoint: { x: 50, y: 0 },
+    StartPoint: { x: 50, y: headerHeight },
     Bin: {
-      StartPoint: { x: 50 + gridWidth - 230, y: gridHeight + 18 },
+      StartPoint: { x: 50 + gridWidth - 230, y: gridHeight + headerHeight + 18 },
       height: 62,
       width: 230,
     } 
-  }), [gridHeight, gridWidth]);
+  }), [gridHeight, gridWidth, headerHeight]);
 
   return (
     <div className="app-shell">
