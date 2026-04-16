@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import Timetable from "./components/Timetable";
 import footerLogo from "./assets/logo-pl.png";
-import { ThemeMode, THEME_STORAGE_KEY, normalizeTheme } from "./utils/ThemeUtils";
+import { ThemeMode, THEME_STORAGE_KEY, getPreferredTheme } from "./utils/ThemeUtils";
 import "./App.css";
 
 function useWindowSize() {
@@ -30,13 +30,7 @@ function useWindowSize() {
 function App() {
   const { width, height } = useWindowSize();
   const [isEditBarVisible, setIsEditBarVisible] = useState(false);
-  const [theme, setTheme] = useState<ThemeMode>(() => {
-    if (typeof window === "undefined") {
-      return "dark";
-    }
-
-    return normalizeTheme(window.localStorage.getItem(THEME_STORAGE_KEY));
-  });
+  const [theme, setTheme] = useState<ThemeMode>(getPreferredTheme);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;

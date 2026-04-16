@@ -6,6 +6,19 @@ export function normalizeTheme(value: string | null | undefined): ThemeMode {
   return value === "light" ? "light" : "dark";
 }
 
+export function getPreferredTheme(): ThemeMode {
+  if (typeof window === "undefined") {
+    return "dark";
+  }
+
+  const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+  if (stored === "dark" || stored === "light") {
+    return stored;
+  }
+
+  return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+}
+
 function clampChannel(value: number) {
   return Math.min(255, Math.max(0, Math.round(value)));
 }
