@@ -294,7 +294,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                     <motion.div
                         className="tt-block-layer"
                         variants={blockListVariants}
-                        initial="initial"
+                        initial={false}
                         animate="animate"
                     >
                         <AnimatePresence mode="popLayout" initial={false}>
