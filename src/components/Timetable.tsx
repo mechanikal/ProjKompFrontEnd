@@ -2,12 +2,13 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import TimetableGrid from "./TimetableGrid";
 import ClassBlock from "./ClassBlock";
 import { BlockData, getGridSnappedPosition, updateBlockPosition, removeBlock, recalculateBlockPostions, recalculateBlockSubrows, sortBlocksByPlacement } from "../utils/ClassBlockUtils";
-import { recalculateOccupiedCells, GridProps, isBinArea, getRowHeightsFromOccupiedCells } from "../utils/TimeGridUtils";
-import { jsonToBlockData, JsonData, loadJsonRoot, saveBlocksAsJson } from "../utils/JsonUtils";
+import { recalculateOccupiedCells, GridProps, isBinArea, getCellPosition, getRowHeightsFromOccupiedCells } from "../utils/TimeGridUtils";
+import { clearSavedJsonRoot, saveBlocksAsJson } from "../utils/JsonUtils";
 import { getNewBlockPosition, SpawnNewBlock } from "../utils/NewBlockUtils";
 import { isNewBlockPresent } from "../utils/NewBlockUtils";
 import EditBar from "./EditBar";
 import { buildCurrentGridProps } from "../utils/TimetableLayoutUtils";
+import { getWeekDateStrings, getWeekRangeString, getPreviousWeek, getNextWeek, getTodayDate } from "../utils/CalendarUtils";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { Toast } from "primereact/toast";
@@ -15,6 +16,8 @@ import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import { ThemeMode } from "../utils/ThemeUtils";
 import { AnimatePresence, motion } from "framer-motion";
 import { blockItemVariants, blockListVariants, springTransition } from "../utils/MotionUtils";
+import { useScheduleData } from "../hooks/useScheduleData";
+import { filterClassesForWeek, refreshScheduledBlocks } from "../utils/ScheduleDataUtils";
 
 type TimetableProps = {
   gridProps: GridProps;
@@ -30,16 +33,28 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     const [blocksData, setBlocksData] = useState<BlockData[]>([]);
     const [occupiedCells, setOccupiedCells] = useState<number[]>(Array(rows * cols).fill(0));
     const [selectedBlockId, setSelectedBlockId] = useState<number | null>(null);
+    const [currentDate, setCurrentDate] = useState<Date>(getTodayDate());
     const rightPanelRef = useRef<HTMLElement | null>(null);
     const toast = useRef<Toast>(null);
 
-    const currentGridProps = useMemo(() => buildCurrentGridProps(gridProps, rowHeights), [gridProps, rowHeights]);
     const selectedBlock = blocksData.find(b => b.id === selectedBlockId);
     const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
     const [isEditModeEnabled, setIsEditModeEnabled] = useState(false);
     const boardRef = useRef<HTMLDivElement | null>(null);
     const [boardContentWidth, setBoardContentWidth] = useState(gridWidth + 50);
     const responsiveGridWidth = Math.max(1, boardContentWidth - 50);
+    const { classes: scheduleClasses, terms: scheduleTerms, isLoading: scheduleIsLoading, error: scheduleError } = useScheduleData(gridProps);
+    const weekDates = useMemo(() => getWeekDateStrings(currentDate), [currentDate]);
+    const dayLabels = useMemo(() => weekDates.map((dateString) => {
+        const exactIndex = scheduleTerms.indexOf(dateString);
+        if (exactIndex === -1) {
+            return "";
+        }
+
+        const termNumber = Math.floor(exactIndex / 5) + 1;
+        return `Termin ${termNumber}`;
+    }), [scheduleTerms, weekDates]);
+    const currentGridProps = useMemo(() => buildCurrentGridProps(gridProps, rowHeights), [gridProps, rowHeights]);
     const responsiveGridProps = useMemo(() => ({
         ...currentGridProps,
         gridWidth: responsiveGridWidth,
@@ -51,6 +66,36 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
             },
         },
     }), [currentGridProps, responsiveGridWidth]);
+    const visibleBlocks = useMemo(() => {
+        const weekFilteredBlocks = filterClassesForWeek(blocksData, weekDates);
+        const newBlocks = blocksData.filter((block) => block.col === -1 && block.row === -1);
+
+        if (!isEditModeEnabled) {
+            const weekDateSet = new Set(weekDates);
+
+            return weekFilteredBlocks.flatMap((block) => {
+                const matchedDate = block.activeDates.find((date) => weekDateSet.has(date));
+                if (!matchedDate) {
+                    return [];
+                }
+
+                const displayRow = weekDates.indexOf(matchedDate);
+                if (displayRow < 0) {
+                    return [];
+                }
+
+                const position = getCellPosition(displayRow, block.col, responsiveGridProps);
+                return [{
+                    ...block,
+                    row: displayRow,
+                    x: position.x,
+                    y: position.y + (block.subrow * responsiveGridProps.gridHeight / responsiveGridProps.rows),
+                }];
+            });
+        }
+
+        return isEditModeEnabled ? [...weekFilteredBlocks, ...newBlocks] : weekFilteredBlocks;
+    }, [blocksData, isEditModeEnabled, weekDates, responsiveGridProps]);
 
     useEffect(() => {
         onEditBarVisibilityChange?.(selectedBlockId !== null);
@@ -124,6 +169,21 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
         setBlocksData(prev => recalculateBlockPostions(recalculateBlockSubrows(sortBlocksByPlacement(prev)), responsiveGridProps));
     }, [responsiveGridProps]);
 
+    useEffect(() => {
+        if (scheduleIsLoading) {
+            return;
+        }
+
+        if (scheduleError) {
+            setBlocksData([]);
+            setOccupiedCells(Array(rows * cols).fill(0));
+            return;
+        }
+
+        const blocksWithBin = SpawnNewBlock(refreshScheduledBlocks(scheduleClasses, scheduleTerms), responsiveGridProps.Bin);
+        applyBlocksState(blocksWithBin, false);
+    }, [scheduleIsLoading, scheduleClasses, scheduleTerms, scheduleError]);
+
     const applyBlocksState = (nextBlocks: BlockData[], persist = true) => {
         const sortedBlocks = sortBlocksByPlacement(nextBlocks);
         setBlocksData(sortedBlocks);
@@ -180,22 +240,18 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
         });
     };
 
-    // read blocks data from json/local storage
-    useEffect(() => {
-        loadJsonRoot()
-            .then((jsonRoot) => {
-                const classItems = Array.isArray(jsonRoot.classes) ? jsonRoot.classes : [];
+    const handlePreviousWeek = () => {
+        setCurrentDate((previous) => getPreviousWeek(previous));
+    };
 
-                const blocks = classItems.map((data: JsonData, index: number) => {
-                    const block = jsonToBlockData(data, gridProps);
-                    return { ...block, id: index };
-                });
+    const handleNextWeek = () => {
+        setCurrentDate((previous) => getNextWeek(previous));
+    };
 
-                const blocksWithBin = SpawnNewBlock(blocks, responsiveGridProps.Bin);
-                applyBlocksState(blocksWithBin, false);
-            })
-            .catch(err => console.error(err));
-            }, [gridProps]);
+    const handleReloadData = () => {
+        clearSavedJsonRoot();
+        window.location.reload();
+    };
 
     //block handlers
 
@@ -257,7 +313,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
         return snappedPos;
     }
 
-    const placedBlocksCount = blocksData.filter(block => block.col !== -1 && block.row !== -1).length;
+    const placedBlocksCount = visibleBlocks.filter(block => block.col !== -1 && block.row !== -1).length;
 
     return (
         <div className="tt-layout" style={{ position: "relative" }}>
@@ -306,7 +362,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                     <span className="tt-plan-chip">nazwa grupy</span>
                     <Button icon="pi pi-plus" text rounded className="tt-icon-btn tt-chip-add-btn" />
                     <div className="tt-plan-row-spacer" />
-                    <Button icon="pi pi-refresh" rounded outlined className="tt-icon-btn tt-refresh-btn" />
+                    <Button icon="pi pi-refresh" rounded outlined className="tt-icon-btn tt-refresh-btn" onClick={handleReloadData} />
                 </div>
 
                 <motion.div
@@ -325,6 +381,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                         StartPoint={responsiveGridProps.StartPoint}
                         Bin={responsiveGridProps.Bin}
                         showBin={isEditModeEnabled}
+                        dayLabels={dayLabels}
                     />
                     <motion.div
                         className="tt-block-layer"
@@ -333,7 +390,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                         animate="animate"
                     >
                         <AnimatePresence mode="popLayout" initial={false}>
-                            {blocksData.map((block) => {
+                            {visibleBlocks.map((block) => {
                                 const isNewClassBlock = block.col === -1 && block.row === -1;
 
                                 if (isNewClassBlock && !isEditModeEnabled) {
@@ -360,9 +417,9 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                 {!isEditModeEnabled && (
                     <div className="tt-bottom-row">
                         <div className="tt-bottom-nav">
-                            <Button icon="pi pi-chevron-left" rounded outlined className="tt-nav-btn" aria-label="Poprzedni tydzień" />
-                            <span className="tt-date-pill">25.01-1.02</span>
-                            <Button icon="pi pi-chevron-right" rounded outlined className="tt-nav-btn" aria-label="Następny tydzień" />
+                            <Button icon="pi pi-chevron-left" rounded outlined className="tt-nav-btn" aria-label="Poprzedni tydzień" onClick={handlePreviousWeek} />
+                            <span className="tt-date-pill">{getWeekRangeString(currentDate)}</span>
+                            <Button icon="pi pi-chevron-right" rounded outlined className="tt-nav-btn" aria-label="Następny tydzień" onClick={handleNextWeek} />
                         </div>
 
                         <Button label="pobierz pdf" icon="pi pi-download" className="tt-download-btn" />
@@ -370,6 +427,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                 )}
 
                 {isEditModeEnabled && <div className="tt-active-count">Aktywne bloki: {placedBlocksCount}</div>}
+                {scheduleError && <div className="tt-active-count">Błąd danych: {scheduleError}</div>}
             </section>
 
             <aside ref={rightPanelRef} className="tt-right-panel">

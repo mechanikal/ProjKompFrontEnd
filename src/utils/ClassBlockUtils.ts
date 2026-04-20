@@ -16,6 +16,7 @@ export type BlockData = {
     terms: number[];
     termMode: "x1" | "x2";
     reference: string;
+    activeDates: string[];
 };
 
 export function sortBlocksByPlacement(blocksData: BlockData[]) {

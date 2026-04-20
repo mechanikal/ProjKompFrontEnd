@@ -21,7 +21,8 @@ export function SpawnNewBlock(blocksData:BlockData[],bin :BinData){
         extraInfo: "",
         terms: [],
         termMode: "x1",
-        reference: ""
+        reference: "",
+        activeDates: []
     };
     newBlocksData.push(newBlock);
     console.log("new blocks data:", newBlocksData);

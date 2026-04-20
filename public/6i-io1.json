@@ -3,7 +3,7 @@
   "classes": [
     {
       "info": {
-        "terms": [],
+        "terms": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
         "name": "Programowanie sieciowe.1",
         "extra": "i24 110"
       },
@@ -15,7 +15,7 @@
     },
     {
       "info": {
-        "terms": [],
+        "terms": [1, 2, 3, 4, 5, 6, 7, 8],
         "name": "Projektowanie obiektowe - wzorce projektowe",
         "extra": "i24 B19 403"
       },
@@ -27,7 +27,7 @@
     },
     {
       "info": {
-        "terms": [],
+        "terms": [7, 8, 9, 10, 11, 12, 13, 14, 15],
         "name": "Programowanie sieciowe.1",
         "extra": "E 5"
       },
@@ -39,7 +39,7 @@
     },
     {
       "info": {
-        "terms": [],
+        "terms": [9, 10, 11],
         "name": "Projektowanie obiektowe - wzorce projektowe",
         "extra": "E 5"
       },
@@ -51,7 +51,7 @@
     },
     {
       "info": {
-        "terms": [],
+        "terms": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
         "name": "Podstawy konteneryzacji i architektury mikroserwisów",
         "extra": "E 1"
       },
@@ -63,7 +63,7 @@
     },
     {
       "info": {
-        "terms": [],
+        "terms": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
         "name": "Podstawy konteneryzacji i architektury mikroserwisów",
         "extra": "i24 107"
       },
@@ -75,7 +75,7 @@
     },
     {
       "info": {
-        "terms": [],
+        "terms": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
         "name": "Zarządzanie projektami informatycznymi",
         "extra": "i24 B19 406"
       },
@@ -87,7 +87,7 @@
     },
     {
       "info": {
-        "terms": [],
+        "terms": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
         "name": "Projektowanie dynamicznych stron www",
         "extra": "i24 311"
       },
@@ -99,7 +99,7 @@
     },
     {
       "info": {
-        "terms": [],
+        "terms": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
         "name": "Projektowanie dynamicznych stron www",
         "extra": "E 6"
       },
@@ -111,7 +111,7 @@
     },
     {
       "info": {
-        "terms": [],
+        "terms": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
         "name": "Zarządzanie projektami informatycznymi",
         "extra": "k22 B18 A3"
       },

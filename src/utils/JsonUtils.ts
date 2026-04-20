@@ -60,7 +60,8 @@ export function jsonToBlockData(json: JsonData, gridProps: GridProps): BlockData
         extraInfo: json.info.extra,
         terms: normalizeTerms(json.info.terms),
         termMode: normalizeTermMode(json.info.terms),
-        reference: json.reference
+        reference: json.reference,
+        activeDates: []
     };
     return result;
 }
@@ -117,6 +118,14 @@ export function saveJsonRoot(root: JsonRoot) {
     }
 
     window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(root));
+}
+
+export function clearSavedJsonRoot() {
+    if (typeof window === "undefined") {
+        return;
+    }
+
+    window.localStorage.removeItem(LOCAL_STORAGE_KEY);
 }
 
 export function saveBlocksAsJson(blocks: BlockData[], timetableName = DEFAULT_TIMETABLE_NAME) {

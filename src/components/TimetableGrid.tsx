@@ -5,9 +5,10 @@ import { springTransition } from "../utils/MotionUtils";
 
 type TimetableGridProps = GridProps & {
   showBin?: boolean;
+  dayLabels?: string[];
 };
 
-const TimetableGrid: React.FC<TimetableGridProps> = ({ rows, cols, gridHeight, gridWidth, rowHeights, StartPoint, Bin, showBin = true }) => {
+const TimetableGrid: React.FC<TimetableGridProps> = ({ rows, cols, gridHeight, gridWidth, rowHeights, StartPoint, Bin, showBin = true, dayLabels = [] }) => {
   const cellSize = { x: gridWidth / cols, y: gridHeight / rows };
   const weekdays = ["PON", "WT", "ŚR", "CZW", "PT"];
   const hours = Array.from({ length: cols }, (_, index) => `${8 + index}:00`);
@@ -57,7 +58,8 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({ rows, cols, gridHeight, g
         <React.Fragment key={`row-${row.day}`}>
           {/* Day header for this row */}
           <div className={`timetable-day-header ${rowIndex === rows - 1 ? 'timetable-day-header--last' : ''}`}>
-            {row.day}
+            <div>{row.day}</div>
+            {dayLabels[rowIndex] && <div style={{ fontSize: "10px", opacity: 0.8 }}>{dayLabels[rowIndex]}</div>}
           </div>
 
           {/* Grid cells for this row */}
