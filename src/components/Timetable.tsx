@@ -34,7 +34,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     const toast = useRef<Toast>(null);
 
     const currentGridProps = useMemo(() => buildCurrentGridProps(gridProps, rowHeights), [gridProps, rowHeights]);
-    const selectedBlock = blocksData.find(b => b.id === selectedBlockId) || null;
+    const selectedBlock = blocksData.find(b => b.id === selectedBlockId);
     const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
 
     useEffect(() => {
@@ -265,7 +265,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                         <AnimatePresence mode="popLayout" initial={false}>
                             {blocksData.map((block) => (
                                 <ClassBlock
-                                    gridProps={gridProps}
+                                    gridProps={currentGridProps}
                                     handlePickup={handleBlockPickup}
                                     handleDrop={handleBlockDrop}
                                     key={block.id}

@@ -32,6 +32,9 @@ export default function Block({
   const cellSize = { x: gridWidth /cols, y: gridHeight / rows };
   const classDisplayColor = getClassDisplayColor(color, theme);
   const classTextColor = getReadableTextColor(classDisplayColor);
+  
+  const blockWidth = Math.max(1, Math.round(cellSize.x * hourSpan) + BLOCK_WIDTH_ADJUST);
+  const blockHeight = Math.max(1, Math.round(cellSize.y) + BLOCK_HEIGHT_ADJUST);
 
   useEffect(() => {
     if (!isDragging) {
@@ -68,20 +71,18 @@ export default function Block({
 
   return (
     <motion.div
-      layout={!isDragging}
+      layout="position"
       transition={isDragging ? { duration: 0 } : springTransition}
       variants={variants ?? blockItemVariants}
       initial="initial"
       animate="animate"
       exit="exit"
-      whileHover={isDragging ? undefined : { scale: 1.02 }}
-      whileTap={isDragging ? undefined : { scale: 0.98 }}
       onMouseDown={handleMouseDown}
       className="tt-class-block"
       style={{
         position: "absolute",
-        width: Math.max(1, Math.round(cellSize.x * hourSpan) + BLOCK_WIDTH_ADJUST),
-        height: Math.max(1, Math.round(cellSize.y) + BLOCK_HEIGHT_ADJUST),
+        width: blockWidth,
+        height: blockHeight,
         backgroundColor: classDisplayColor,
         color: classTextColor,
         display: "flex",

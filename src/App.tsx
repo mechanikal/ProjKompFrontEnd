@@ -31,7 +31,7 @@ function useWindowSize() {
 
 function App() {
   const { width, height } = useWindowSize();
-  const [isEditBarVisible, setIsEditBarVisible] = useState(false);
+  const [, setIsEditBarVisible] = useState(false);
   const [theme, setTheme] = useState<ThemeMode>(getPreferredTheme);
 
   useEffect(() => {
@@ -43,9 +43,9 @@ function App() {
     setTheme((previousTheme) => (previousTheme === "dark" ? "light" : "dark"));
   };
 
-  const contentWidth = isEditBarVisible
-    ? Math.min(980, Math.max(760, width * 0.72))
-    : Math.min(1280, Math.max(760, width * 0.92));
+  // Keep timetable geometry stable between initial load and drag/select actions.
+  // Edit panel visibility should not resize the grid, because that visually shrinks blocks.
+  const contentWidth = Math.min(980, Math.max(760, width * 0.72));
   const CELL_WIDTH_BONUS = 8;
   const CELL_HEIGHT_BONUS = 2;
 

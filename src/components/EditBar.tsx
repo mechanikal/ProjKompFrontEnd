@@ -8,7 +8,7 @@ import { InputTextarea } from "primereact/inputtextarea";
 import { BlockData } from "../utils/ClassBlockUtils";
 import { cloneBlockData, hasDraftChanges } from "../utils/EditBarUtils";
 import { motion } from "framer-motion";
-import { hoverTapScale, springTransition } from "../utils/MotionUtils";
+import { springTransition } from "../utils/MotionUtils";
 
 const NUMBERED_TERMS = Array.from({ length: 15 }, (_, index) => index + 1);
 
@@ -37,7 +37,7 @@ function buildRange(fromTerm: number, toTerm: number) {
 }
 
 export type EditBarData = {
-    blockData?: BlockData;
+  blockData?: BlockData | null;
     onSave: (updated: BlockData, options?: { silent?: boolean }) => void;
     onHide: () => void;
     onDelete: (blockId: number) => void;
@@ -283,7 +283,7 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onSave, onHide, onDelete })
             disabled={!draft}
             onClick={() => draft && onDelete(draft.id)}
           />
-          <motion.div layout transition={springTransition} {...hoverTapScale}>
+          <motion.div layout transition={springTransition}>
             <Button label="NOWY BLOK" className="tt-new-block-btn" onClick={onHide} />
           </motion.div>
         </div>
