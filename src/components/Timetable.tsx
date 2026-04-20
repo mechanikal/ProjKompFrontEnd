@@ -360,9 +360,9 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                 {!isEditModeEnabled && (
                     <div className="tt-bottom-row">
                         <div className="tt-bottom-nav">
-                            <Button icon="pi pi-replay" rounded outlined className="tt-nav-btn" />
+                            <Button icon="pi pi-chevron-left" rounded outlined className="tt-nav-btn" aria-label="Poprzedni tydzień" />
                             <span className="tt-date-pill">25.01-1.02</span>
-                            <Button icon="pi pi-share-alt" rounded outlined className="tt-nav-btn" />
+                            <Button icon="pi pi-chevron-right" rounded outlined className="tt-nav-btn" aria-label="Następny tydzień" />
                         </div>
 
                         <Button label="pobierz pdf" icon="pi pi-download" className="tt-download-btn" />

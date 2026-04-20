@@ -411,13 +411,17 @@ will-change: width;
 margin-top: 8px;
 display: flex;
 align-items: center;
-justify-content: space-between;
+justify-content: flex-end;
+position: relative;
 }
 
 .tt-bottom-nav {
 display: flex;
 align-items: center;
 gap: 10px;
+position: absolute;
+left: 50%;
+transform: translateX(-50%);
 }
 
 .tt-date-pill {
@@ -427,7 +431,6 @@ display: inline-flex;
 align-items: center;
 justify-content: center;
 background: var(--surface-input);
-border: 1px solid var(--border-soft);
 font-size: 29px;
 font-weight: 700;
 padding: 0 10px;
