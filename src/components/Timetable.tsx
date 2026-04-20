@@ -36,10 +36,31 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     const currentGridProps = useMemo(() => buildCurrentGridProps(gridProps, rowHeights), [gridProps, rowHeights]);
     const selectedBlock = blocksData.find(b => b.id === selectedBlockId);
     const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
+    const [isEditModeEnabled, setIsEditModeEnabled] = useState(false);
+    const boardRef = useRef<HTMLDivElement | null>(null);
+    const [boardContentWidth, setBoardContentWidth] = useState(gridWidth + 50);
+    const responsiveGridWidth = Math.max(1, boardContentWidth - 50);
+    const responsiveGridProps = useMemo(() => ({
+        ...currentGridProps,
+        gridWidth: responsiveGridWidth,
+        Bin: {
+            ...currentGridProps.Bin,
+            StartPoint: {
+                x: 50 + responsiveGridWidth - currentGridProps.Bin.width,
+                y: currentGridProps.Bin.StartPoint.y,
+            },
+        },
+    }), [currentGridProps, responsiveGridWidth]);
 
     useEffect(() => {
         onEditBarVisibilityChange?.(selectedBlockId !== null);
     }, [onEditBarVisibilityChange, selectedBlockId]);
+
+    useEffect(() => {
+        if (!isEditModeEnabled) {
+            setSelectedBlockId(null);
+        }
+    }, [isEditModeEnabled]);
 
     useEffect(() => {
         if (selectedBlockId === null) {
@@ -74,13 +95,39 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     }, [occupiedCells, rows, cols]);
 
     useEffect(() => {
-        setBlocksData(prev => recalculateBlockPostions(recalculateBlockSubrows(sortBlocksByPlacement(prev)), currentGridProps));
-    }, [currentGridProps]);
+        const element = boardRef.current;
+        if (!element) {
+            return;
+        }
+
+        const updateBoardWidth = () => {
+            setBoardContentWidth((previousWidth) => {
+                const nextWidth = Math.max(1, element.clientWidth);
+                return nextWidth === previousWidth ? previousWidth : nextWidth;
+            });
+        };
+
+        updateBoardWidth();
+
+        if (typeof ResizeObserver === "undefined") {
+            window.addEventListener("resize", updateBoardWidth);
+            return () => window.removeEventListener("resize", updateBoardWidth);
+        }
+
+        const observer = new ResizeObserver(updateBoardWidth);
+        observer.observe(element);
+
+        return () => observer.disconnect();
+    }, [gridWidth]);
+
+    useEffect(() => {
+        setBlocksData(prev => recalculateBlockPostions(recalculateBlockSubrows(sortBlocksByPlacement(prev)), responsiveGridProps));
+    }, [responsiveGridProps]);
 
     const applyBlocksState = (nextBlocks: BlockData[], persist = true) => {
         const sortedBlocks = sortBlocksByPlacement(nextBlocks);
         setBlocksData(sortedBlocks);
-        setOccupiedCells(recalculateOccupiedCells(sortedBlocks, currentGridProps));
+        setOccupiedCells(recalculateOccupiedCells(sortedBlocks, responsiveGridProps));
 
         if (persist) {
             saveBlocksAsJson(sortedBlocks);
@@ -109,7 +156,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     const deleteBlockById = (blockId: number) => {
         let nextBlocks = removeBlock(blocksData, blockId);
         if (!isNewBlockPresent(nextBlocks)) {
-            nextBlocks = SpawnNewBlock(nextBlocks, currentGridProps.Bin);
+            nextBlocks = SpawnNewBlock(nextBlocks, responsiveGridProps.Bin);
         }
 
         applyBlocksState(nextBlocks);
@@ -144,7 +191,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                     return { ...block, id: index };
                 });
 
-                const blocksWithBin = SpawnNewBlock(blocks, currentGridProps.Bin);
+                const blocksWithBin = SpawnNewBlock(blocks, responsiveGridProps.Bin);
                 applyBlocksState(blocksWithBin, false);
             })
             .catch(err => console.error(err));
@@ -153,10 +200,14 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     //block handlers
 
     const handleBlockPickup = (blockId: number, hourSpan: number) => {
+        if (!isEditModeEnabled) {
+            return;
+        }
+
         const block = blocksData.find(b => b.id === blockId);
         if (!block) return;
         if (block.col == -1 || block.row == -1){
-            setBlocksData(SpawnNewBlock(blocksData,currentGridProps.Bin));
+            setBlocksData(SpawnNewBlock(blocksData,responsiveGridProps.Bin));
             setSelectedBlockId(blockId);
             return;
         }
@@ -177,10 +228,14 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     };
 
     const handleBlockDrop = (blockId: number, newX: number, newY: number, hourSpan: number) => {
-        if (isBinArea(newX,newY,currentGridProps)){
+        if (!isEditModeEnabled) {
+            return { x: newX, y: newY };
+        }
+
+        if (isBinArea(newX,newY,responsiveGridProps)){
             let newData = removeBlock(blocksData,blockId);
             if(!isNewBlockPresent(newData)){
-                newData = SpawnNewBlock(newData,currentGridProps.Bin);
+                newData = SpawnNewBlock(newData,responsiveGridProps.Bin);
             }
             applyBlocksState(newData);
             setSelectedBlockId(null);
@@ -190,20 +245,19 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                 detail: `Blok #${blockId} trafil do binu.`,
                 life: 1200,
             });
-            return {x: getNewBlockPosition(currentGridProps.Bin).x, y: getNewBlockPosition(currentGridProps.Bin).y};
+            return {x: getNewBlockPosition(responsiveGridProps.Bin).x, y: getNewBlockPosition(responsiveGridProps.Bin).y};
         }
-        const snappedPos = getGridSnappedPosition(newX, newY + cellSize.y/2, hourSpan, currentGridProps);
-        const newBlocksData = updateBlockPosition(blocksData, blockId, snappedPos.x, snappedPos.y, currentGridProps);
+        const snappedPos = getGridSnappedPosition(newX, newY + cellSize.y/2, hourSpan, responsiveGridProps);
+        const newBlocksData = updateBlockPosition(blocksData, blockId, snappedPos.x, snappedPos.y, responsiveGridProps);
         let recalculatedBlocks = sortBlocksByPlacement(newBlocksData);
         if(!isNewBlockPresent(recalculatedBlocks)){
-            recalculatedBlocks = SpawnNewBlock(recalculatedBlocks,currentGridProps.Bin);
+            recalculatedBlocks = SpawnNewBlock(recalculatedBlocks,responsiveGridProps.Bin);
         }
         applyBlocksState(recalculatedBlocks);
         return snappedPos;
     }
 
     const placedBlocksCount = blocksData.filter(block => block.col !== -1 && block.row !== -1).length;
-    const boardWidth = 50 + currentGridProps.gridWidth;
 
     return (
         <div className="tt-layout" style={{ position: "relative" }}>
@@ -216,6 +270,20 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                     <Button icon="pi pi-link" rounded text className="tt-icon-btn tt-prompt-link" />
                     <InputText placeholder="Wpisz prompt" className="tt-prompt-input" />
                     <Button icon="pi pi-send" rounded text className="tt-icon-btn" />
+                </div>
+
+                <div className="tt-plan-row">
+                    <span>tryb edycji</span>
+                    <label className="tt-mail-toggle" aria-label="Tryb edycji">
+                        <input
+                            type="checkbox"
+                            checked={isEditModeEnabled}
+                            onChange={(event) => setIsEditModeEnabled(event.target.checked)}
+                        />
+                        <span className="tt-mail-toggle-track" aria-hidden="true">
+                            <span className="tt-mail-toggle-thumb" />
+                        </span>
+                    </label>
                 </div>
 
                 <div className="tt-plan-row">
@@ -242,19 +310,21 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                 </div>
 
                 <motion.div
+                    ref={boardRef}
                     layout
                     transition={springTransition}
                     className="tt-board"
-                    style={{ position: "relative", width: `${boardWidth}px` }}
+                    style={{ position: "relative", width: "100%", minWidth: 0 }}
                 >
                     <TimetableGrid
                         rows={rows}
                         cols={cols}
                         gridHeight={gridHeight}
-                        gridWidth={gridWidth}
+                        gridWidth={responsiveGridProps.gridWidth}
                         rowHeights={rowHeights}
-                        StartPoint={currentGridProps.StartPoint}
-                        Bin={currentGridProps.Bin}
+                        StartPoint={responsiveGridProps.StartPoint}
+                        Bin={responsiveGridProps.Bin}
+                        showBin={isEditModeEnabled}
                     />
                     <motion.div
                         className="tt-block-layer"
@@ -263,32 +333,43 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                         animate="animate"
                     >
                         <AnimatePresence mode="popLayout" initial={false}>
-                            {blocksData.map((block) => (
-                                <ClassBlock
-                                    gridProps={currentGridProps}
-                                    handlePickup={handleBlockPickup}
-                                    handleDrop={handleBlockDrop}
-                                    key={block.id}
-                                    theme={theme}
-                                    blockData={block}
-                                    variants={blockItemVariants}
-                                />
-                            ))}
+                            {blocksData.map((block) => {
+                                const isNewClassBlock = block.col === -1 && block.row === -1;
+
+                                if (isNewClassBlock && !isEditModeEnabled) {
+                                    return null;
+                                }
+
+                                return (
+                                    <ClassBlock
+                                        gridProps={responsiveGridProps}
+                                        handlePickup={handleBlockPickup}
+                                        handleDrop={handleBlockDrop}
+                                        isEditModeEnabled={isEditModeEnabled}
+                                        key={block.id}
+                                        theme={theme}
+                                        blockData={block}
+                                        variants={blockItemVariants}
+                                    />
+                                );
+                            })}
                         </AnimatePresence>
                     </motion.div>
                 </motion.div>
 
-                <div className="tt-bottom-row">
-                    <div className="tt-bottom-nav">
-                        <Button icon="pi pi-replay" rounded outlined className="tt-nav-btn" />
-                        <span className="tt-date-pill">25.01-1.02</span>
-                        <Button icon="pi pi-share-alt" rounded outlined className="tt-nav-btn" />
+                {!isEditModeEnabled && (
+                    <div className="tt-bottom-row">
+                        <div className="tt-bottom-nav">
+                            <Button icon="pi pi-replay" rounded outlined className="tt-nav-btn" />
+                            <span className="tt-date-pill">25.01-1.02</span>
+                            <Button icon="pi pi-share-alt" rounded outlined className="tt-nav-btn" />
+                        </div>
+
+                        <Button label="pobierz pdf" icon="pi pi-download" className="tt-download-btn" />
                     </div>
+                )}
 
-                    <Button label="pobierz pdf" icon="pi pi-download" className="tt-download-btn" />
-                </div>
-
-                <div className="tt-active-count">Aktywne bloki: {placedBlocksCount}</div>
+                {isEditModeEnabled && <div className="tt-active-count">Aktywne bloki: {placedBlocksCount}</div>}
             </section>
 
             <aside ref={rightPanelRef} className="tt-right-panel">

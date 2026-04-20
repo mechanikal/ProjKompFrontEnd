@@ -11,15 +11,17 @@ type BlockProps = {
   blockData: BlockData;
   gridProps: GridProps;
   theme: ThemeMode;
+  isEditModeEnabled: boolean;
   variants?: Variants;
 };
 
 export default function Block({
-  blockData: { id: blockId, x, y, hourSpan, color, text },
+  blockData: { id: blockId, col, row, x, y, hourSpan, color, text },
   gridProps: { gridWidth, gridHeight, cols, rows },
   handleDrop,
   handlePickup,
   theme,
+  isEditModeEnabled,
   variants,
 
 }: BlockProps) {
@@ -27,6 +29,7 @@ export default function Block({
   const VISUAL_OFFSET_Y = 1;
   const BLOCK_WIDTH_ADJUST = -4;
   const BLOCK_HEIGHT_ADJUST = -4;
+  const isNewClassBlock = col === -1 && row === -1;
   const [position, setPosition] = useState({ x: x, y: y });
   const [isDragging, setIsDragging] = useState(false);
   const cellSize = { x: gridWidth /cols, y: gridHeight / rows };
@@ -42,7 +45,18 @@ export default function Block({
     }
   }, [x, y, isDragging]);
 
+  if (isNewClassBlock && !isEditModeEnabled) {
+    return null;
+  }
+
+  const renderLeftOffset = isNewClassBlock ? Math.round(blockWidth * 0.45) : 0;
+  const renderTopOffset = isNewClassBlock ? Math.round(blockHeight * 0.25) : 0;
+
   const handleMouseDown = (e: React.MouseEvent) => {
+    if (!isEditModeEnabled) {
+      return;
+    }
+
     setIsDragging(true);
     const startX = e.pageX - position.x;
     const startY = e.pageY - position.y;
@@ -89,9 +103,9 @@ export default function Block({
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        left: Math.round(position.x) + VISUAL_OFFSET_X,
-        top: Math.round(position.y) + VISUAL_OFFSET_Y,
-        cursor: isDragging ? "grabbing" : "grab",
+        left: Math.round(position.x) + VISUAL_OFFSET_X - renderLeftOffset,
+        top: Math.round(position.y) + VISUAL_OFFSET_Y - renderTopOffset,
+        cursor: isEditModeEnabled ? (isDragging ? "grabbing" : "grab") : "default",
         borderRadius: 0,
         userSelect: "none",
         boxShadow: isDragging ? "var(--class-shadow-drag)" : "var(--class-shadow-rest)",

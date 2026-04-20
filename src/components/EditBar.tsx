@@ -283,9 +283,6 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onSave, onHide, onDelete })
             disabled={!draft}
             onClick={() => draft && onDelete(draft.id)}
           />
-          <motion.div layout transition={springTransition}>
-            <Button label="NOWY BLOK" className="tt-new-block-btn" onClick={onHide} />
-          </motion.div>
         </div>
       </div>
     </div>

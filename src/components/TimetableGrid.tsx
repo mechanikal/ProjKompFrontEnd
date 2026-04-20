@@ -3,8 +3,11 @@ import { GridProps } from "../utils/TimeGridUtils";
 import { motion } from "framer-motion";
 import { springTransition } from "../utils/MotionUtils";
 
+type TimetableGridProps = GridProps & {
+  showBin?: boolean;
+};
 
-const TimetableGrid: React.FC<GridProps> = ({ rows, cols, gridHeight, gridWidth, rowHeights, StartPoint, Bin }) => {
+const TimetableGrid: React.FC<TimetableGridProps> = ({ rows, cols, gridHeight, gridWidth, rowHeights, StartPoint, Bin, showBin = true }) => {
   const cellSize = { x: gridWidth / cols, y: gridHeight / rows };
   const weekdays = ["PON", "WT", "ŚR", "CZW", "PT"];
   const hours = Array.from({ length: cols }, (_, index) => `${8 + index}:00`);
@@ -77,22 +80,23 @@ const TimetableGrid: React.FC<GridProps> = ({ rows, cols, gridHeight, gridWidth,
         </React.Fragment>
       ))}
 
-      {/* Bin (positioned absolutely within the grid container) */}
-      <motion.div
-        layout
-        transition={springTransition}
-        className="timetable-bin"
-        style={{
-          position: "absolute",
-          width: Bin.width,
-          height: Bin.height,
-          left: Bin.StartPoint.x,
-          top: Bin.StartPoint.y,
-        }}
-      >
-        <span className="timetable-bin-title">KOSZ</span>
-        <span className="timetable-bin-subtitle">upusc blok, aby usunac</span>
-      </motion.div>
+      {showBin && (
+        <motion.div
+          layout
+          transition={springTransition}
+          className="timetable-bin"
+          style={{
+            position: "absolute",
+            width: Bin.width,
+            height: Bin.height,
+            left: Bin.StartPoint.x,
+            top: Bin.StartPoint.y,
+          }}
+        >
+          <span className="timetable-bin-title">KOSZ</span>
+          <span className="timetable-bin-subtitle">upusc blok, aby usunac</span>
+        </motion.div>
+      )}
     </motion.div>
   );
 };
