@@ -138,7 +138,10 @@ flex: 0 0 252px;
 width: 252px;
 max-width: 252px;
 padding: 8px;
-overflow: hidden;
+overflow-x: hidden;
+overflow-y: auto;
+position: relative;
+z-index: 2;
 transition:
 flex-basis 240ms ease,
 width 240ms ease,
@@ -162,6 +165,12 @@ opacity: 0;
 transform: translateX(18px);
 pointer-events: none;
 border-color: transparent;
+}
+
+.tt-surface--editbar-open .tt-right-panel {
+pointer-events: auto;
+opacity: 1;
+transform: none;
 }
 
 .tt-prompt-row {
@@ -286,6 +295,27 @@ color: var(--text-main);
 .tt-prompt-link.p-button {
 background: var(--surface-input);
 border: 1px solid var(--border-soft);
+}
+
+.tt-prompt-robot {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+width: 40px;
+height: 40px;
+color: var(--text-soft);
+border: none;
+background: transparent;
+}
+
+.tt-prompt-robot-icon {
+width: 22px;
+height: 22px;
+fill: none;
+stroke: currentColor;
+stroke-width: 1.8;
+stroke-linecap: round;
+stroke-linejoin: round;
 }
 
 .timetable-unified-container {
@@ -534,7 +564,7 @@ gap: 0.75rem;
 height: 100%;
 background: var(--surface-main);
 border: 1px solid var(--border-soft);
-padding: 8px;
+padding: 8px 8px 33px;
 transition: var(--transition-theme);
 }
 
@@ -666,29 +696,28 @@ text-transform: none;
 }
 
 .tt-color-row {
-align-items: flex-start;
+align-items: center;
 }
 
-.tt-edit-actions {
+.tt-color-controls {
+display: grid;
+grid-template-columns: repeat(3, minmax(0, 1fr));
+align-items: center;
+gap: 8px;
+width: 100%;
+justify-items: center;
+}
+
+.tt-color-controls .p-colorpicker {
 display: flex;
 align-items: center;
-justify-content: space-between;
-gap: 8px;
+justify-content: center;
+width: auto;
 }
 
-.tt-edit-btn.p-button {
-background: var(--accent-primary);
-border-color: var(--accent-primary);
-font-weight: 700;
-flex: 1;
-height: 34px;
-}
-
-.tt-edit-bottom {
-display: grid;
-grid-template-columns: 52px minmax(0, 1fr);
-gap: 8px;
-margin-top: 8px;
+.tt-color-controls .p-button {
+width: 2rem;
+height: 2rem;
 }
 
 .tt-new-block-btn.p-button {
@@ -739,6 +768,17 @@ width: 42px;
 height: 22px;
 border-radius: 6px;
 border-color: var(--border-soft);
+}
+
+.tt-edit-panel .p-button.p-button-danger {
+background: #c62828;
+border-color: #c62828;
+color: #fff;
+}
+
+.tt-edit-panel .p-button.p-button-danger:hover {
+background: #ad1f1f;
+border-color: #ad1f1f;
 }
 
 @media (max-width: 1280px) {

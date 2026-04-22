@@ -41,10 +41,11 @@ export type EditBarData = {
     onSave: (updated: BlockData, options?: { silent?: boolean }) => void;
     onHide: () => void;
     onDelete: (blockId: number) => void;
+    onRestoreFromDisk: (blockId: number) => void;
 };
 
 
-const EditBar: React.FC<EditBarData> = ({ blockData, onSave, onHide, onDelete }) => {
+const EditBar: React.FC<EditBarData> = ({ blockData, onSave, onHide, onDelete, onRestoreFromDisk }) => {
   const [draft, setDraft] = useState<BlockData | null>(cloneBlockData(blockData));
   const defaultClassColor = typeof window === "undefined"
     ? "#5f9fd1"
@@ -81,10 +82,22 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onSave, onHide, onDelete })
       return;
     }
 
-    setDraft({
+    const nextDraft = {
       ...draft,
-      [key]: value
-    });
+      [key]: value,
+    };
+
+    setDraft(nextDraft);
+    draftRef.current = nextDraft;
+    onSave(nextDraft, { silent: true });
+  };
+
+  const handleReplayDraft = () => {
+    if (!draft) {
+      return;
+    }
+
+    onRestoreFromDisk(draft.id);
   };
 
   const handleToggleNumberedTerm = (term: number) => {
@@ -240,28 +253,33 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onSave, onHide, onDelete })
 
         <div className="editbar-field tt-color-row">
           <label htmlFor="block-color">kolor</label>
-          <ColorPicker
-              id="block-color"
-              format="hex"
-              value={(draft?.color ?? defaultClassColor).replace("#", "")}
-              disabled={disabled}
-              onChange={(e) => handleFieldChange("color", `#${String(e.value)}`)}
+          <div className="tt-color-controls">
+            <ColorPicker
+                id="block-color"
+                format="hex"
+                value={(draft?.color ?? defaultClassColor).replace("#", "")}
+                disabled={disabled}
+                onChange={(e) => handleFieldChange("color", `#${String(e.value)}`)}
+              />
+            <Button
+              icon="pi pi-replay"
+              rounded
+              outlined
+              onClick={handleReplayDraft}
+              disabled={!draft}
+              aria-label="Przywroc dane z dysku"
             />
+            <Button
+              icon="pi pi-trash"
+              severity="danger"
+              outlined
+              disabled={!draft}
+              onClick={() => draft && onDelete(draft.id)}
+              aria-label="Usun blok"
+            />
+          </div>
         </div>
 
-        <div className="tt-edit-actions">
-          <Button icon="pi pi-replay" rounded outlined onClick={onHide} />
-        </div>
-
-        <div className="tt-edit-bottom">
-          <Button
-            icon="pi pi-trash"
-            severity="secondary"
-            outlined
-            disabled={!draft}
-            onClick={() => draft && onDelete(draft.id)}
-          />
-        </div>
       </div>
     </div>
   );

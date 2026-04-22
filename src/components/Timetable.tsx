@@ -35,12 +35,14 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     const [selectedBlockId, setSelectedBlockId] = useState<number | null>(null);
     const [currentDate, setCurrentDate] = useState<Date>(getTodayDate());
     const rightPanelRef = useRef<HTMLElement | null>(null);
+    const originalBlocksRef = useRef<BlockData[]>([]);
     const toast = useRef<Toast>(null);
 
     const selectedBlock = blocksData.find(b => b.id === selectedBlockId);
     const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
     const [isEditModeEnabled, setIsEditModeEnabled] = useState(false);
     const boardRef = useRef<HTMLDivElement | null>(null);
+    const blocksDataRef = useRef<BlockData[]>([]);
     const [boardContentWidth, setBoardContentWidth] = useState(gridWidth + 50);
     const responsiveGridWidth = Math.max(1, boardContentWidth - 50);
     const { classes: scheduleClasses, terms: scheduleTerms, isLoading: scheduleIsLoading, error: scheduleError } = useScheduleData(gridProps);
@@ -147,6 +149,10 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     }, [blocksForLayout, responsiveGridProps]);
 
     useEffect(() => {
+        blocksDataRef.current = blocksData;
+    }, [blocksData]);
+
+    useEffect(() => {
         const element = boardRef.current;
         if (!element) {
             return;
@@ -187,6 +193,9 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
         }
 
         const blocksWithBin = SpawnNewBlock(refreshScheduledBlocks(scheduleClasses, scheduleTerms), responsiveGridProps.Bin);
+        if (originalBlocksRef.current.length === 0) {
+            originalBlocksRef.current = blocksWithBin;
+        }
         applyBlocksState(blocksWithBin, false);
     }, [scheduleIsLoading, scheduleClasses, scheduleTerms, scheduleError]);
 
@@ -202,8 +211,9 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     };
 
     const handleEditBlock = (updatedBlock: BlockData, options?: { silent?: boolean }) => {
+        const currentBlocks = blocksDataRef.current;
         const nextBlocks = sortBlocksByPlacement(
-            blocksData.map(b => (b.id === updatedBlock.id ? updatedBlock : b))
+            currentBlocks.map(b => (b.id === updatedBlock.id ? updatedBlock : b))
         );
 
         applyBlocksState(nextBlocks);
@@ -219,7 +229,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     };
 
     const deleteBlockById = (blockId: number) => {
-        let nextBlocks = removeBlock(blocksData, blockId);
+        let nextBlocks = removeBlock(blocksDataRef.current, blockId);
         if (!isNewBlockPresent(nextBlocks)) {
             nextBlocks = SpawnNewBlock(nextBlocks, responsiveGridProps.Bin);
         }
@@ -258,6 +268,32 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
         window.location.reload();
     };
 
+    const handleRestoreBlockFromDisk = (blockId: number) => {
+        const originalBlock = originalBlocksRef.current.find((block) => block.id === blockId);
+        if (!originalBlock) {
+            toast.current?.show({
+                severity: "warn",
+                summary: "Brak danych z dysku",
+                detail: `Nie udało się przywrócić bloku #${blockId}.`,
+                life: 1500,
+            });
+            return;
+        }
+
+        const nextBlocks = sortBlocksByPlacement(
+            blocksDataRef.current.map((block) => (block.id === blockId ? originalBlock : block))
+        );
+
+        applyBlocksState(nextBlocks);
+
+        toast.current?.show({
+            severity: "success",
+            summary: "Przywrócono z dysku",
+            detail: `Blok #${blockId} został przywrócony.`,
+            life: 1500,
+        });
+    };
+
     //block handlers
 
     const handleBlockPickup = (blockId: number, hourSpan: number) => {
@@ -265,10 +301,10 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
             return;
         }
 
-        const block = blocksData.find(b => b.id === blockId);
+        const block = blocksDataRef.current.find(b => b.id === blockId);
         if (!block) return;
         if (block.col == -1 || block.row == -1){
-            setBlocksData(SpawnNewBlock(blocksData,responsiveGridProps.Bin));
+            setBlocksData(SpawnNewBlock(blocksDataRef.current,responsiveGridProps.Bin));
             setSelectedBlockId(blockId);
             return;
         }
@@ -286,7 +322,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
         }
 
         if (isBinArea(newX,newY,responsiveGridProps)){
-            let newData = removeBlock(blocksData,blockId);
+            let newData = removeBlock(blocksDataRef.current,blockId);
             if(!isNewBlockPresent(newData)){
                 newData = SpawnNewBlock(newData,responsiveGridProps.Bin);
             }
@@ -301,7 +337,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
             return {x: getNewBlockPosition(responsiveGridProps.Bin).x, y: getNewBlockPosition(responsiveGridProps.Bin).y};
         }
         const snappedPos = getGridSnappedPosition(newX, newY + cellSize.y/2, hourSpan, responsiveGridProps);
-        const newBlocksData = updateBlockPosition(blocksData, blockId, snappedPos.x, snappedPos.y, responsiveGridProps);
+        const newBlocksData = updateBlockPosition(blocksDataRef.current, blockId, snappedPos.x, snappedPos.y, responsiveGridProps);
         let recalculatedBlocks = sortBlocksByPlacement(newBlocksData);
         if(!isNewBlockPresent(recalculatedBlocks)){
             recalculatedBlocks = SpawnNewBlock(recalculatedBlocks,responsiveGridProps.Bin);
@@ -443,6 +479,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                 onSave={handleEditBlock}
                 onHide={handleHideEditBar}
                 onDelete={handleDeleteRequest}
+                onRestoreFromDisk={handleRestoreBlockFromDisk}
             />
             </aside>
         </div>
