@@ -74,24 +74,31 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
         return mapClassesToWeekDisplayRows(weekFilteredBlocks, weekDates);
     }, [blocksData, weekDates]);
 
-    const positionedWeekBlocks = useMemo(() => weekDisplayBlocks.map((block) => {
+    const editModePlacedBlocks = useMemo(
+        () => blocksData.filter((block) => block.col >= 0 && block.row >= 0),
+        [blocksData],
+    );
+
+    const blocksForLayout = isEditModeEnabled ? editModePlacedBlocks : weekDisplayBlocks;
+
+    const positionedBlocks = useMemo(() => blocksForLayout.map((block) => {
         const position = getCellPosition(block.row, block.col, responsiveGridProps);
         return {
             ...block,
             x: position.x,
             y: position.y + (block.subrow * responsiveGridProps.gridHeight / responsiveGridProps.rows),
         };
-    }), [weekDisplayBlocks, responsiveGridProps]);
+    }), [blocksForLayout, responsiveGridProps]);
 
     const visibleBlocks = useMemo(() => {
         const newBlocks = blocksData.filter((block) => block.col === -1 && block.row === -1);
 
         if (!isEditModeEnabled) {
-            return positionedWeekBlocks;
+            return positionedBlocks;
         }
 
-        return [...positionedWeekBlocks, ...newBlocks];
-    }, [blocksData, isEditModeEnabled, positionedWeekBlocks]);
+        return [...positionedBlocks, ...newBlocks];
+    }, [blocksData, isEditModeEnabled, positionedBlocks]);
 
     useEffect(() => {
         onEditBarVisibilityChange?.(selectedBlockId !== null);
@@ -136,8 +143,8 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     }, [occupiedCells, rows, cols]);
 
     useEffect(() => {
-        setOccupiedCells(recalculateOccupiedCells(weekDisplayBlocks, responsiveGridProps));
-    }, [weekDisplayBlocks, responsiveGridProps]);
+        setOccupiedCells(recalculateOccupiedCells(blocksForLayout, responsiveGridProps));
+    }, [blocksForLayout, responsiveGridProps]);
 
     useEffect(() => {
         const element = boardRef.current;
@@ -313,7 +320,17 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
         <div className={`tt-surface ${selectedBlockId !== null ? "tt-surface--editbar-open" : "tt-surface--editbar-hidden"}`}>
             <section className="tt-left-panel">
                 <div className="tt-prompt-row">
-                    <Button icon="pi pi-link" rounded text className="tt-icon-btn tt-prompt-link" />
+                    <span className="tt-prompt-robot" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" className="tt-prompt-robot-icon" focusable="false">
+                            <path d="M12 3v2" />
+                            <path d="M8 7h8a2 2 0 0 1 2 2v6a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3V9a2 2 0 0 1 2-2Z" />
+                            <circle cx="10" cy="12" r="1" />
+                            <circle cx="14" cy="12" r="1" />
+                            <path d="M9.5 15h5" />
+                            <path d="M6 10H4" />
+                            <path d="M20 10h-2" />
+                        </svg>
+                    </span>
                     <InputText placeholder="Wpisz prompt" className="tt-prompt-input" />
                     <Button icon="pi pi-send" rounded text className="tt-icon-btn" />
                 </div>
@@ -371,7 +388,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                         StartPoint={responsiveGridProps.StartPoint}
                         Bin={responsiveGridProps.Bin}
                         showBin={isEditModeEnabled}
-                        dayLabels={dayLabels}
+                        dayLabels={isEditModeEnabled ? [] : dayLabels}
                     />
                     <motion.div
                         className="tt-block-layer"

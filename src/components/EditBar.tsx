@@ -45,7 +45,6 @@ export type EditBarData = {
 
 
 const EditBar: React.FC<EditBarData> = ({ blockData, onSave, onHide, onDelete }) => {
-  const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<BlockData | null>(cloneBlockData(blockData));
   const defaultClassColor = typeof window === "undefined"
     ? "#5f9fd1"
@@ -71,12 +70,11 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onSave, onHide, onDelete })
     const cloned = cloneBlockData(blockData);
     setDraft(cloned);
     draftRef.current = cloned;
-    setIsEditing(false);
     previousIdRef.current = nextId;
     previousBlockRef.current = cloned;
   }, [blockData, onSave]);
 
-  const disabled = !draft || !isEditing;
+  const disabled = !draft;
 
   const handleFieldChange = <K extends keyof BlockData>(key: K, value: BlockData[K]) => {
     if (!draft) {
@@ -87,20 +85,6 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onSave, onHide, onDelete })
       ...draft,
       [key]: value
     });
-  };
-
-  const handleEditOrSave = () => {
-    if (!draft) {
-      return;
-    }
-
-    if (!isEditing) {
-      setIsEditing(true);
-      return;
-    }
-
-    onSave(draft);
-    setIsEditing(false);
   };
 
   const handleToggleNumberedTerm = (term: number) => {
@@ -266,12 +250,6 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onSave, onHide, onDelete })
         </div>
 
         <div className="tt-edit-actions">
-          <Button
-            label={isEditing ? "zapisz" : "edytuj"}
-            className="tt-edit-btn"
-            disabled={!draft}
-            onClick={handleEditOrSave}
-          />
           <Button icon="pi pi-replay" rounded outlined onClick={onHide} />
         </div>
 
