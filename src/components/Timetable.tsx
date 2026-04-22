@@ -48,11 +48,14 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     const dayLabels = useMemo(() => weekDates.map((dateString) => {
         const exactIndex = scheduleTerms.indexOf(dateString);
         if (exactIndex === -1) {
-            return "";
+            return null;
         }
 
         const termNumber = Math.floor(exactIndex / 5) + 1;
-        return `Termin ${termNumber}`;
+        return {
+            label: "Termin",
+            termNumber: String(termNumber),
+        };
     }), [scheduleTerms, weekDates]);
     const currentGridProps = useMemo(() => buildCurrentGridProps(gridProps, rowHeights), [gridProps, rowHeights]);
     const responsiveGridProps = useMemo(() => ({
