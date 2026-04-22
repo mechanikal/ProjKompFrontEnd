@@ -295,7 +295,7 @@ border: 1px solid var(--border-soft);
   border-radius: 0;
   overflow: visible;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, grid-template-rows 260ms ease, height 260ms ease;
   box-sizing: border-box;
 }
 

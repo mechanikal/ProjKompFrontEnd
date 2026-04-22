@@ -17,7 +17,7 @@ import { ThemeMode } from "../utils/ThemeUtils";
 import { AnimatePresence, motion } from "framer-motion";
 import { blockItemVariants, blockListVariants, springTransition } from "../utils/MotionUtils";
 import { useScheduleData } from "../hooks/useScheduleData";
-import { filterClassesForWeek, refreshScheduledBlocks } from "../utils/ScheduleDataUtils";
+import { filterClassesForWeek, mapClassesToWeekDisplayRows, refreshScheduledBlocks } from "../utils/ScheduleDataUtils";
 
 type TimetableProps = {
   gridProps: GridProps;
@@ -66,36 +66,29 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
             },
         },
     }), [currentGridProps, responsiveGridWidth]);
-    const visibleBlocks = useMemo(() => {
+    const weekDisplayBlocks = useMemo(() => {
         const weekFilteredBlocks = filterClassesForWeek(blocksData, weekDates);
+        return mapClassesToWeekDisplayRows(weekFilteredBlocks, weekDates);
+    }, [blocksData, weekDates]);
+
+    const positionedWeekBlocks = useMemo(() => weekDisplayBlocks.map((block) => {
+        const position = getCellPosition(block.row, block.col, responsiveGridProps);
+        return {
+            ...block,
+            x: position.x,
+            y: position.y + (block.subrow * responsiveGridProps.gridHeight / responsiveGridProps.rows),
+        };
+    }), [weekDisplayBlocks, responsiveGridProps]);
+
+    const visibleBlocks = useMemo(() => {
         const newBlocks = blocksData.filter((block) => block.col === -1 && block.row === -1);
 
         if (!isEditModeEnabled) {
-            const weekDateSet = new Set(weekDates);
-
-            return weekFilteredBlocks.flatMap((block) => {
-                const matchedDate = block.activeDates.find((date) => weekDateSet.has(date));
-                if (!matchedDate) {
-                    return [];
-                }
-
-                const displayRow = weekDates.indexOf(matchedDate);
-                if (displayRow < 0) {
-                    return [];
-                }
-
-                const position = getCellPosition(displayRow, block.col, responsiveGridProps);
-                return [{
-                    ...block,
-                    row: displayRow,
-                    x: position.x,
-                    y: position.y + (block.subrow * responsiveGridProps.gridHeight / responsiveGridProps.rows),
-                }];
-            });
+            return positionedWeekBlocks;
         }
 
-        return isEditModeEnabled ? [...weekFilteredBlocks, ...newBlocks] : weekFilteredBlocks;
-    }, [blocksData, isEditModeEnabled, weekDates, responsiveGridProps]);
+        return [...positionedWeekBlocks, ...newBlocks];
+    }, [blocksData, isEditModeEnabled, positionedWeekBlocks]);
 
     useEffect(() => {
         onEditBarVisibilityChange?.(selectedBlockId !== null);
@@ -140,6 +133,10 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     }, [occupiedCells, rows, cols]);
 
     useEffect(() => {
+        setOccupiedCells(recalculateOccupiedCells(weekDisplayBlocks, responsiveGridProps));
+    }, [weekDisplayBlocks, responsiveGridProps]);
+
+    useEffect(() => {
         const element = boardRef.current;
         if (!element) {
             return;
@@ -176,7 +173,6 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
 
         if (scheduleError) {
             setBlocksData([]);
-            setOccupiedCells(Array(rows * cols).fill(0));
             return;
         }
 
@@ -187,7 +183,6 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     const applyBlocksState = (nextBlocks: BlockData[], persist = true) => {
         const sortedBlocks = sortBlocksByPlacement(nextBlocks);
         setBlocksData(sortedBlocks);
-        setOccupiedCells(recalculateOccupiedCells(sortedBlocks, responsiveGridProps));
 
         if (persist) {
             saveBlocksAsJson(sortedBlocks);
@@ -268,14 +263,6 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
             return;
         }
 
-        setOccupiedCells(prev => {
-            const newArr = [...prev];
-            newArr[block.row * cols + block.col] -= 1;
-            for (let i = 1; i < hourSpan; i++) {
-                newArr[block.row * cols + block.col + i] -= 1;
-            }
-            return newArr;
-        });
         setSelectedBlockId(blockId);
     }
 

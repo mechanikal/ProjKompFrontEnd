@@ -78,6 +78,26 @@ export function filterClassesForWeek(blocks: ScheduledBlockData[], weekDates: st
   return blocks.filter((block) => block.activeDates.some((date) => weekDateSet.has(date)));
 }
 
+export function mapClassesToWeekDisplayRows(blocks: ScheduledBlockData[], weekDates: string[]): ScheduledBlockData[] {
+  if (weekDates.length === 0) {
+    return [];
+  }
+
+  const dateToRow = new Map(weekDates.map((date, index) => [date, index] as const));
+
+  return blocks.flatMap((block) => {
+    const displayRow = block.activeDates
+      .map((date) => dateToRow.get(date))
+      .find((rowIndex): rowIndex is number => typeof rowIndex === "number");
+
+    if (typeof displayRow !== "number") {
+      return [];
+    }
+
+    return [{ ...block, row: displayRow }];
+  });
+}
+
 export function groupClassesByDay(blocks: ScheduledBlockData[], weekDates: string[]): ScheduledBlockData[][] {
   const filteredBlocks = filterClassesForWeek(blocks, weekDates);
 
