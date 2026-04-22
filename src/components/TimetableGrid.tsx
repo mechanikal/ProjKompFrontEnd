@@ -14,7 +14,12 @@ type TimetableGridProps = GridProps & {
 const TimetableGrid: React.FC<TimetableGridProps> = ({ rows, cols, gridHeight, gridWidth, rowHeights, StartPoint, Bin, showBin = true, dayLabels = [] }) => {
   const cellSize = { x: gridWidth / cols, y: gridHeight / rows };
   const weekdays = ["PON", "WT", "ŚR", "CZW", "PT"];
-  const hours = Array.from({ length: cols }, (_, index) => `${8 + index}:00`);
+  const formatTime = (hour: number, minute: number) => `${hour}:${String(minute).padStart(2, "0")}`;
+  const hours = Array.from({ length: cols }, (_, index) => {
+    const startHour = 8 + index;
+    const endHour = 9 + index;
+    return `${formatTime(startHour, 15)} - ${formatTime(endHour, 0)}`;
+  });
   
   const dayRows = weekdays.map((day, index) => ({
     day,
