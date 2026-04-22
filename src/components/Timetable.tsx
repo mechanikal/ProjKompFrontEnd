@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import TimetableGrid from "./TimetableGrid";
 import ClassBlock from "./ClassBlock";
 import { BlockData, getGridSnappedPosition, updateBlockPosition, removeBlock, recalculateBlockPostions, recalculateBlockSubrows, sortBlocksByPlacement } from "../utils/ClassBlockUtils";
-import { recalculateOccupiedCells, GridProps, isBinArea, getCellPosition, getRowHeightsFromOccupiedCells } from "../utils/TimeGridUtils";
+import { recalculateOccupiedCells, GridProps, isBinArea, getCellIndex, getCellPosition, getRowHeightsFromOccupiedCells } from "../utils/TimeGridUtils";
 import { clearSavedJsonRoot, saveBlocksAsJson } from "../utils/JsonUtils";
 import { getNewBlockPosition, SpawnNewBlock } from "../utils/NewBlockUtils";
 import { isNewBlockPresent } from "../utils/NewBlockUtils";
@@ -17,7 +17,7 @@ import { ThemeMode } from "../utils/ThemeUtils";
 import { AnimatePresence, motion } from "framer-motion";
 import { blockItemVariants, blockListVariants, springTransition } from "../utils/MotionUtils";
 import { useScheduleData } from "../hooks/useScheduleData";
-import { filterClassesForWeek, mapClassesToWeekDisplayRows, refreshScheduledBlocks } from "../utils/ScheduleDataUtils";
+import { filterClassesForWeek, mapClassesToWeekDisplayRows, refreshScheduledBlocks, buildActiveDates } from "../utils/ScheduleDataUtils";
 
 type TimetableProps = {
   gridProps: GridProps;
@@ -76,12 +76,17 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
         return mapClassesToWeekDisplayRows(weekFilteredBlocks, weekDates);
     }, [blocksData, weekDates]);
 
+    const weekViewPlacedBlocks = useMemo(
+        () => recalculateBlockSubrows(sortBlocksByPlacement(weekDisplayBlocks)),
+        [weekDisplayBlocks],
+    );
+
     const editModePlacedBlocks = useMemo(
         () => blocksData.filter((block) => block.col >= 0 && block.row >= 0),
         [blocksData],
     );
 
-    const blocksForLayout = isEditModeEnabled ? editModePlacedBlocks : weekDisplayBlocks;
+    const blocksForLayout = isEditModeEnabled ? editModePlacedBlocks : weekViewPlacedBlocks;
 
     const positionedBlocks = useMemo(() => blocksForLayout.map((block) => {
         const position = getCellPosition(block.row, block.col, responsiveGridProps);
@@ -212,8 +217,15 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
 
     const handleEditBlock = (updatedBlock: BlockData, options?: { silent?: boolean }) => {
         const currentBlocks = blocksDataRef.current;
+        
+        // Recalculate activeDates when terms change so week view reflects edits
+        const blockWithUpdatedDates = {
+            ...updatedBlock,
+            activeDates: buildActiveDates(updatedBlock.terms, updatedBlock.row, scheduleTerms)
+        };
+        
         const nextBlocks = sortBlocksByPlacement(
-            currentBlocks.map(b => (b.id === updatedBlock.id ? updatedBlock : b))
+            currentBlocks.map(b => (b.id === blockWithUpdatedDates.id ? blockWithUpdatedDates : b))
         );
 
         applyBlocksState(nextBlocks);
@@ -222,7 +234,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
             toast.current?.show({
                 severity: "success",
                 summary: "Zapisano",
-                detail: `Zaktualizowano blok: ${updatedBlock.text}`,
+                detail: `Zaktualizowano blok: ${blockWithUpdatedDates.text}`,
                 life: 1400,
             });
         }
@@ -316,15 +328,15 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
         setSelectedBlockId(null);
     };
 
-    const handleBlockDrop = (blockId: number, newX: number, newY: number, hourSpan: number) => {
+    const handleBlockDrop = (blockId: number, newX: number, newY: number, hourSpan: number, dragGridProps: GridProps = responsiveGridProps) => {
         if (!isEditModeEnabled) {
             return { x: newX, y: newY };
         }
 
-        if (isBinArea(newX,newY,responsiveGridProps)){
+        if (isBinArea(newX,newY,dragGridProps)){
             let newData = removeBlock(blocksDataRef.current,blockId);
             if(!isNewBlockPresent(newData)){
-                newData = SpawnNewBlock(newData,responsiveGridProps.Bin);
+                newData = SpawnNewBlock(newData,dragGridProps.Bin);
             }
             applyBlocksState(newData);
             setSelectedBlockId(null);
@@ -334,13 +346,21 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                 detail: `Blok #${blockId} trafil do binu.`,
                 life: 1200,
             });
-            return {x: getNewBlockPosition(responsiveGridProps.Bin).x, y: getNewBlockPosition(responsiveGridProps.Bin).y};
+            return {x: getNewBlockPosition(dragGridProps.Bin).x, y: getNewBlockPosition(dragGridProps.Bin).y};
         }
-        const snappedPos = getGridSnappedPosition(newX, newY + cellSize.y/2, hourSpan, responsiveGridProps);
-        const newBlocksData = updateBlockPosition(blocksDataRef.current, blockId, snappedPos.x, snappedPos.y, responsiveGridProps);
+        const targetIndex = getCellIndex(newX, newY + cellSize.y / 2, dragGridProps);
+        const snappedCol = Math.max(0, Math.min(targetIndex.col, dragGridProps.cols - hourSpan));
+        const currentBlock = blocksDataRef.current.find((block) => block.id === blockId);
+
+        if (currentBlock && currentBlock.row === targetIndex.row && currentBlock.col === snappedCol) {
+            return getCellPosition(currentBlock.row, currentBlock.col, dragGridProps);
+        }
+
+        const snappedPos = getGridSnappedPosition(newX, newY + cellSize.y/2, hourSpan, dragGridProps);
+        const newBlocksData = updateBlockPosition(blocksDataRef.current, blockId, snappedPos.x, snappedPos.y, dragGridProps);
         let recalculatedBlocks = sortBlocksByPlacement(newBlocksData);
         if(!isNewBlockPresent(recalculatedBlocks)){
-            recalculatedBlocks = SpawnNewBlock(recalculatedBlocks,responsiveGridProps.Bin);
+            recalculatedBlocks = SpawnNewBlock(recalculatedBlocks,dragGridProps.Bin);
         }
         applyBlocksState(recalculatedBlocks);
         return snappedPos;

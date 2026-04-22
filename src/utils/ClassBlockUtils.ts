@@ -105,7 +105,7 @@ export function findFirstAvailableSubrow(blocksData: BlockData[], targetRow: num
 export const getGridSnappedPosition = (x: number, y: number, hourSpan: number, gridProps: GridProps) => {
         const cellIndex = getCellIndex(x,y,gridProps);
         const overhang = Math.max(cellIndex.col + hourSpan - gridProps.cols, 0);
-        cellIndex.col -= overhang;
+    cellIndex.col = Math.max(0, cellIndex.col - overhang);
         const cellPos = getCellPosition(cellIndex.row, cellIndex.col, gridProps);
         return cellPos;
     };

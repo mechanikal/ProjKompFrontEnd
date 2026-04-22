@@ -6,7 +6,7 @@ import { motion, Variants } from "framer-motion";
 import { blockItemVariants, springTransition } from "../utils/MotionUtils";
 
 type BlockProps = {
-  handleDrop: (blockId: number, x: number, y: number, hourSpan: number) => {x: number, y: number};
+  handleDrop: (blockId: number, x: number, y: number, hourSpan: number, gridProps: GridProps) => {x: number, y: number};
   handlePickup: (blockId: number, hourSpan: number) => void;
   blockData: BlockData;
   gridProps: GridProps;
@@ -17,7 +17,7 @@ type BlockProps = {
 
 export default function Block({
   blockData: { id: blockId, col, row, x, y, hourSpan, color, text },
-  gridProps: { gridWidth, gridHeight, cols, rows },
+  gridProps,
   handleDrop,
   handlePickup,
   theme,
@@ -32,6 +32,7 @@ export default function Block({
   const isNewClassBlock = col === -1 && row === -1;
   const [position, setPosition] = useState({ x: x, y: y });
   const [isDragging, setIsDragging] = useState(false);
+  const { gridWidth, gridHeight, cols, rows } = gridProps;
   const cellSize = { x: gridWidth /cols, y: gridHeight / rows };
   const classDisplayColor = getClassDisplayColor(color, theme);
   const classTextColor = getReadableTextColor(classDisplayColor);
@@ -57,22 +58,44 @@ export default function Block({
       return;
     }
 
-    setIsDragging(true);
     const startX = e.pageX - position.x;
     const startY = e.pageY - position.y;
+    const dragThreshold = 5;
+    let didDrag = false;
+
     const handleMouseMove = (e: MouseEvent) => {
+      const nextX = e.pageX - startX;
+      const nextY = e.pageY - startY;
+
+      if (!didDrag) {
+        const movedEnough = Math.abs(nextX - position.x) >= dragThreshold || Math.abs(nextY - position.y) >= dragThreshold;
+        if (!movedEnough) {
+          return;
+        }
+
+        didDrag = true;
+        setIsDragging(true);
+      }
+
       setPosition({
-        x: e.pageX - startX,
-        y: e.pageY - startY,
+        x: nextX,
+        y: nextY,
       });
     };
     const handleMouseUp = (e: MouseEvent) => {
-      setIsDragging(false);
       const finalX = e.pageX - startX;
       const finalY = e.pageY - startY;
-      
+
+      if (!didDrag) {
+        handlePickup(blockId, hourSpan);
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+        return;
+      }
+
+      setIsDragging(false);
       handlePickup(blockId, hourSpan);
-      setPosition(handleDrop(blockId, finalX, finalY, hourSpan));
+      setPosition(handleDrop(blockId, finalX, finalY, hourSpan, gridProps));
       
 
       document.removeEventListener("mousemove", handleMouseMove);
