@@ -1,6 +1,9 @@
 import { useMemo, useState, useEffect } from "react";
 import Timetable from "./components/Timetable";
 import footerLogo from "./assets/logo-pl.png";
+import { ThemeMode, THEME_STORAGE_KEY, getPreferredTheme } from "./utils/ThemeUtils";
+import { motion } from "framer-motion";
+import { hoverTapScale } from "./utils/MotionUtils";
 import "./App.css";
 
 function useWindowSize() {
@@ -28,45 +31,72 @@ function useWindowSize() {
 
 function App() {
   const { width, height } = useWindowSize();
+  const [, setIsEditBarVisible] = useState(false);
+  const [theme, setTheme] = useState<ThemeMode>(getPreferredTheme);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
+
+  const handleThemeToggle = () => {
+    setTheme((previousTheme) => (previousTheme === "dark" ? "light" : "dark"));
+  };
+
+  // Keep timetable geometry stable between initial load and drag/select actions.
+  // Edit panel visibility should not resize the grid, because that visually shrinks blocks.
   const contentWidth = Math.min(980, Math.max(760, width * 0.72));
-  const CELL_WIDTH_BONUS = 17;
-  const CELL_HEIGHT_BONUS = 5;
+  const CELL_WIDTH_BONUS = 8;
+  const CELL_HEIGHT_BONUS = 2;
 
   // Keep grid math on integer pixels to avoid subpixel drift between cells and blocks.
   const rawGridWidth = contentWidth - 74;
-  const colWidth = Math.max(52, Math.floor(rawGridWidth / 12) + CELL_WIDTH_BONUS);
+  const colWidth = Math.max(48, Math.floor(rawGridWidth / 12) + CELL_WIDTH_BONUS);
   const gridWidth = colWidth * 12;
 
-  const rawGridHeight = Math.min(420, Math.max(280, height * 0.42));
-  const rowHeight = Math.max(36, Math.floor(rawGridHeight / 7) + CELL_HEIGHT_BONUS);
-  const gridHeight = rowHeight * 7;
+  const rawGridHeight = Math.min(380, Math.max(260, height * 0.38));
+  const rowHeight = Math.max(34, Math.floor(rawGridHeight / 5) + CELL_HEIGHT_BONUS);
+  const gridHeight = rowHeight * 5;
+  const headerHeight = Math.max(24, Math.round(rowHeight * 0.65));
 
   const gridProps = useMemo(() => ({
-    rows: 7,
+    rows: 5,
     cols: 12,
     gridWidth,
     gridHeight,
-    rowHeights: [1, 1, 1, 1, 1, 1, 1],
-    StartPoint: { x: 54, y: 0 },
+    rowHeights: [1, 1, 1, 1, 1],
+    StartPoint: { x: 50, y: headerHeight },
     Bin: {
-      StartPoint: { x: 54 + gridWidth - 230, y: gridHeight + 18 },
+      StartPoint: { x: 50 + gridWidth - 230, y: gridHeight + headerHeight + 18 },
       height: 62,
       width: 230,
     } 
-  }), [gridHeight, gridWidth]);
+  }), [gridHeight, gridWidth, headerHeight]);
 
   return (
     <div className="app-shell">
       <header className="app-topbar">
-        <div className="app-title">WIRTUALNY PLAN ZAJEC POLITECHNIKI LODZKIEJ</div>
+        <div className="app-title">WIRTUALNY PLAN ZAJĘĆ POLITECHNIKI ŁÓDZKIEJ</div>
         <div className="app-user">
-          <span>Logowanie</span>
+          <button
+            type="button"
+            className="app-theme-toggle"
+            aria-label="Przelacz motyw"
+            onClick={handleThemeToggle}
+          >
+            <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
+          </button>
+          <motion.button type="button" className="app-login-btn" {...hoverTapScale}>Logowanie</motion.button>
           <span className="app-avatar" aria-hidden="true" />
         </div>
       </header>
 
       <main className="app-main">
-        <Timetable gridProps={gridProps} />
+        <Timetable
+          gridProps={gridProps}
+          theme={theme}
+          onEditBarVisibilityChange={setIsEditBarVisible}
+        />
       </main>
 
       <footer className="app-footer">

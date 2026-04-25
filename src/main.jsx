@@ -6,6 +6,13 @@ import 'primereact/resources/primereact.min.css'
 import 'primeicons/primeicons.css'
 import './index.css'
 import App from './App.tsx'
+import { THEME_STORAGE_KEY, getPreferredTheme } from './utils/ThemeUtils.ts'
+
+if (typeof document !== 'undefined') {
+  const theme = getPreferredTheme()
+  document.documentElement.dataset.theme = theme
+  window.localStorage.setItem(THEME_STORAGE_KEY, theme)
+}
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

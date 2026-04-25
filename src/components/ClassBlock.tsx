@@ -1,28 +1,44 @@
 import { useState, useEffect } from "react";
 import { BlockData } from "../utils/ClassBlockUtils";
 import { GridProps } from "../utils/TimeGridUtils";
+import { getClassDisplayColor, getReadableTextColor, ThemeMode } from "../utils/ThemeUtils";
+import { motion, Variants } from "framer-motion";
+import { blockItemVariants, springTransition } from "../utils/MotionUtils";
 
 type BlockProps = {
-  handleDrop: (blockId: number, x: number, y: number, hourSpan: number) => {x: number, y: number};
+  handleDrop: (blockId: number, x: number, y: number, hourSpan: number, gridProps: GridProps) => {x: number, y: number};
   handlePickup: (blockId: number, hourSpan: number) => void;
   blockData: BlockData;
   gridProps: GridProps;
+  theme: ThemeMode;
+  isEditModeEnabled: boolean;
+  variants?: Variants;
 };
 
 export default function Block({
-  blockData: { id: blockId, x, y, hourSpan, color, text },
-  gridProps: { gridWidth, gridHeight, cols, rows },
+  blockData: { id: blockId, col, row, x, y, hourSpan, color, text },
+  gridProps,
   handleDrop,
-  handlePickup
+  handlePickup,
+  theme,
+  isEditModeEnabled,
+  variants,
 
 }: BlockProps) {
-  const VISUAL_OFFSET_X = 8;
-  const VISUAL_OFFSET_Y = 8;
+  const VISUAL_OFFSET_X = 1;
+  const VISUAL_OFFSET_Y = 1;
   const BLOCK_WIDTH_ADJUST = -4;
   const BLOCK_HEIGHT_ADJUST = -4;
+  const isNewClassBlock = col === -1 && row === -1;
   const [position, setPosition] = useState({ x: x, y: y });
   const [isDragging, setIsDragging] = useState(false);
+  const { gridWidth, gridHeight, cols, rows } = gridProps;
   const cellSize = { x: gridWidth /cols, y: gridHeight / rows };
+  const classDisplayColor = getClassDisplayColor(color, theme);
+  const classTextColor = getReadableTextColor(classDisplayColor);
+  
+  const blockWidth = Math.max(1, Math.round(cellSize.x * hourSpan) + BLOCK_WIDTH_ADJUST);
+  const blockHeight = Math.max(1, Math.round(cellSize.y) + BLOCK_HEIGHT_ADJUST);
 
   useEffect(() => {
     if (!isDragging) {
@@ -30,23 +46,56 @@ export default function Block({
     }
   }, [x, y, isDragging]);
 
+  if (isNewClassBlock && !isEditModeEnabled) {
+    return null;
+  }
+
+  const renderLeftOffset = isNewClassBlock ? Math.round(blockWidth * 0.45) : 0;
+  const renderTopOffset = isNewClassBlock ? Math.round(blockHeight * 0.25) : 0;
+
   const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
+    if (!isEditModeEnabled) {
+      return;
+    }
+
     const startX = e.pageX - position.x;
     const startY = e.pageY - position.y;
+    const dragThreshold = 5;
+    let didDrag = false;
+
     const handleMouseMove = (e: MouseEvent) => {
+      const nextX = e.pageX - startX;
+      const nextY = e.pageY - startY;
+
+      if (!didDrag) {
+        const movedEnough = Math.abs(nextX - position.x) >= dragThreshold || Math.abs(nextY - position.y) >= dragThreshold;
+        if (!movedEnough) {
+          return;
+        }
+
+        didDrag = true;
+        setIsDragging(true);
+      }
+
       setPosition({
-        x: e.pageX - startX,
-        y: e.pageY - startY,
+        x: nextX,
+        y: nextY,
       });
     };
     const handleMouseUp = (e: MouseEvent) => {
-      setIsDragging(false);
       const finalX = e.pageX - startX;
       const finalY = e.pageY - startY;
-      
+
+      if (!didDrag) {
+        handlePickup(blockId, hourSpan);
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+        return;
+      }
+
+      setIsDragging(false);
       handlePickup(blockId, hourSpan);
-      setPosition(handleDrop(blockId, finalX, finalY, hourSpan));
+      setPosition(handleDrop(blockId, finalX, finalY, hourSpan, gridProps));
       
 
       document.removeEventListener("mousemove", handleMouseMove);
@@ -58,37 +107,45 @@ export default function Block({
   };
 
   return (
-    <div
+    <motion.div
+      layout="position"
+      transition={isDragging ? { duration: 0 } : springTransition}
+      variants={variants ?? blockItemVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
       onMouseDown={handleMouseDown}
       className="tt-class-block"
       style={{
         position: "absolute",
-        width: Math.max(1, Math.round(cellSize.x * hourSpan) + BLOCK_WIDTH_ADJUST),
-        height: Math.max(1, Math.round(cellSize.y) + BLOCK_HEIGHT_ADJUST),
-        backgroundColor: color,
-        color: "#f4f8ff",
+        width: blockWidth,
+        height: blockHeight,
+        backgroundColor: classDisplayColor,
+        color: classTextColor,
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        left: Math.round(position.x) + VISUAL_OFFSET_X,
-        top: Math.round(position.y) + VISUAL_OFFSET_Y,
-        cursor: isDragging ? "grabbing" : "grab",
-        borderRadius: 4,
+        left: Math.round(position.x) + VISUAL_OFFSET_X - renderLeftOffset,
+        top: Math.round(position.y) + VISUAL_OFFSET_Y - renderTopOffset,
+        cursor: isEditModeEnabled ? (isDragging ? "grabbing" : "grab") : "default",
+        borderRadius: 0,
         userSelect: "none",
-        boxShadow: isDragging ? "0 0 0 1px rgba(255,255,255,0.35)" : "0 1px 10px rgba(0,0,0,0.35)",
-        transition: isDragging ? "none" : "box-shadow 0.2s, filter 0.2s",
+        boxShadow: isDragging ? "var(--class-shadow-drag)" : "var(--class-shadow-rest)",
+        transition: isDragging
+          ? "none"
+          : "left 240ms ease, top 240ms ease, width 240ms ease, height 240ms ease, box-shadow 200ms ease, filter 200ms ease",
         fontSize: "11px",
         fontWeight: 600,
         letterSpacing: "0.2px",
         textAlign: "center",
-        padding: "2px 6px",
+        padding: "6px 10px",
         filter: isDragging ? "brightness(1.06)" : "none",
         overflow: "hidden",
       }}
       >
       <span>{text}</span>
       <small className="tt-class-sub">Sample caption</small>
-    </div>
+    </motion.div>
   );
 }
