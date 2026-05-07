@@ -13,17 +13,59 @@ import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { Toast } from "primereact/toast";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
+import { Dialog } from "primereact/dialog";
+import { Dropdown } from "primereact/dropdown";
+import { InputSwitch } from "primereact/inputswitch";
 import { ThemeMode } from "../utils/ThemeUtils";
 import { AnimatePresence, motion } from "framer-motion";
 import { blockItemVariants, blockListVariants, springTransition } from "../utils/MotionUtils";
 import { useScheduleData } from "../hooks/useScheduleData";
 import { filterClassesForWeek, mapClassesToWeekDisplayRows, refreshScheduledBlocks, buildActiveDates } from "../utils/ScheduleDataUtils";
+import { generatePdf } from "../utils/ExportUtils";
 
 type TimetableProps = {
   gridProps: GridProps;
     theme: ThemeMode;
   onEditBarVisibilityChange?: (isVisible: boolean) => void;
   //todo: add initial blocks data as prop
+};
+
+const areNumberArraysEqual = (left: number[], right: number[]) => {
+    if (left.length !== right.length) {
+        return false;
+    }
+
+    for (let index = 0; index < left.length; index += 1) {
+        if (left[index] !== right[index]) {
+            return false;
+        }
+    }
+
+    return true;
+};
+
+const areBlocksLayoutEqual = (left: BlockData[], right: BlockData[]) => {
+    if (left.length !== right.length) {
+        return false;
+    }
+
+    for (let index = 0; index < left.length; index += 1) {
+        const previous = left[index];
+        const next = right[index];
+
+        if (
+            previous.id !== next.id ||
+            previous.row !== next.row ||
+            previous.col !== next.col ||
+            previous.subrow !== next.subrow ||
+            previous.x !== next.x ||
+            previous.y !== next.y
+        ) {
+            return false;
+        }
+    }
+
+    return true;
 };
 
 const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibilityChange }) => {
@@ -46,6 +88,13 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     const [boardContentWidth, setBoardContentWidth] = useState(gridWidth + 50);
     const responsiveGridWidth = Math.max(1, boardContentWidth - 50);
     const { classes: scheduleClasses, terms: scheduleTerms, isLoading: scheduleIsLoading, error: scheduleError } = useScheduleData(gridProps);
+    
+    // PDF export dialog state
+    const [showPdfDialog, setShowPdfDialog] = useState(false);
+    const [pdfSource, setPdfSource] = useState<"week" | "edit">("week");
+    const [pdfCaption, setPdfCaption] = useState("Plan zajęć");
+    const [pdfDarkMode, setPdfDarkMode] = useState(false);
+    const [pdfFullWeek, setPdfFullWeek] = useState(false);
     const weekDates = useMemo(() => getWeekDateStrings(currentDate), [currentDate]);
     const dayLabels = useMemo(() => weekDates.map((dateString) => {
         const exactIndex = scheduleTerms.indexOf(dateString);
@@ -146,11 +195,17 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     }, [selectedBlockId]);
 
     useEffect(() => {
-        setRowHeights(getRowHeightsFromOccupiedCells(occupiedCells, rows, cols));
+        const nextRowHeights = getRowHeightsFromOccupiedCells(occupiedCells, rows, cols);
+        setRowHeights((previousRowHeights) => (
+            areNumberArraysEqual(previousRowHeights, nextRowHeights) ? previousRowHeights : nextRowHeights
+        ));
     }, [occupiedCells, rows, cols]);
 
     useEffect(() => {
-        setOccupiedCells(recalculateOccupiedCells(blocksForLayout, responsiveGridProps));
+        const nextOccupiedCells = recalculateOccupiedCells(blocksForLayout, responsiveGridProps);
+        setOccupiedCells((previousOccupiedCells) => (
+            areNumberArraysEqual(previousOccupiedCells, nextOccupiedCells) ? previousOccupiedCells : nextOccupiedCells
+        ));
     }, [blocksForLayout, responsiveGridProps]);
 
     useEffect(() => {
@@ -184,7 +239,14 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     }, [gridWidth]);
 
     useEffect(() => {
-        setBlocksData(prev => recalculateBlockPostions(recalculateBlockSubrows(sortBlocksByPlacement(prev)), responsiveGridProps));
+        setBlocksData((previousBlocks) => {
+            const nextBlocks = recalculateBlockPostions(
+                recalculateBlockSubrows(sortBlocksByPlacement(previousBlocks)),
+                responsiveGridProps,
+            );
+
+            return areBlocksLayoutEqual(previousBlocks, nextBlocks) ? previousBlocks : nextBlocks;
+        });
     }, [responsiveGridProps]);
 
     useEffect(() => {
@@ -280,6 +342,46 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
         window.location.reload();
     };
 
+    const handleDownloadPdf = async () => {
+        let blocksToExport: BlockData[];
+        
+        if (pdfSource === "edit") {
+            // Use all blocks from edit mode
+            blocksToExport = blocksData.filter((block) => block.col >= 0 && block.row >= 0);
+        } else {
+            // Use blocks for current week
+            blocksToExport = filterClassesForWeek(blocksData, weekDates);
+        }
+
+        if (blocksToExport.length === 0) {
+            toast.current?.show({
+                severity: "warn",
+                summary: "Brak danych",
+                detail: "Brak bloków do wyeksportowania.",
+                life: 2000,
+            });
+            return;
+        }
+
+        try {
+            await generatePdf(blocksToExport, "plan-zajec.pdf", pdfFullWeek, pdfDarkMode, pdfCaption);
+            setShowPdfDialog(false);
+            toast.current?.show({
+                severity: "success",
+                summary: "Eksport zakończony",
+                detail: "PDF został pobrany.",
+                life: 1500,
+            });
+        } catch (error) {
+            toast.current?.show({
+                severity: "error",
+                summary: "Błąd eksportu",
+                detail: "Nie udało się wygenerować PDF.",
+                life: 2000,
+            });
+        }
+    };
+
     const handleRestoreBlockFromDisk = (blockId: number) => {
         const originalBlock = originalBlocksRef.current.find((block) => block.id === blockId);
         if (!originalBlock) {
@@ -328,12 +430,55 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
         setSelectedBlockId(null);
     };
 
-    const handleBlockDrop = (blockId: number, newX: number, newY: number, hourSpan: number, dragGridProps: GridProps = responsiveGridProps) => {
+    const handleBlockDrop = (blockId: number, newX: number, newY: number, hourSpan: number, dragGridProps: GridProps = responsiveGridProps, mouse?: {clientX: number, clientY: number}) => {
         if (!isEditModeEnabled) {
             return { x: newX, y: newY };
         }
 
-        if (isBinArea(newX,newY,dragGridProps)){
+        // Compute block visual size and use its center for bin-hit testing.
+        const cellSizeForDrag = { x: dragGridProps.gridWidth / dragGridProps.cols, y: dragGridProps.gridHeight / dragGridProps.rows };
+        const BLOCK_WIDTH_ADJUST = -4;
+        const BLOCK_HEIGHT_ADJUST = -4;
+        const blockWidth = Math.max(1, Math.round(cellSizeForDrag.x * hourSpan) + BLOCK_WIDTH_ADJUST);
+        const blockHeight = Math.max(1, Math.round(cellSizeForDrag.y) + BLOCK_HEIGHT_ADJUST);
+        const centerX = newX + blockWidth / 2;
+        const centerY = newY + blockHeight / 2;
+
+        // Prefer explicit EditBar bin element (right panel) detection first so behaviour is consistent.
+        try {
+            const editBarBinEl = rightPanelRef.current?.querySelector('.editbar-bin') as HTMLElement | null;
+            if (editBarBinEl) {
+                // Prefer cursor client coordinates when available (more reliable for elementFromPoint)
+                const clientX = mouse?.clientX ?? (centerX - (window.scrollX || 0));
+                const clientY = mouse?.clientY ?? (centerY - (window.scrollY || 0));
+                const hovered = document.elementFromPoint(clientX, clientY) as HTMLElement | null;
+                // debug info to help trace failed detection
+                // eslint-disable-next-line no-console
+                console.debug("bin-detect", { clientX, clientY, hovered: hovered?.className });
+
+                if (hovered && editBarBinEl.contains(hovered)) {
+                    // unified deletion logic
+                    let newData = removeBlock(blocksDataRef.current, blockId);
+                    if (!isNewBlockPresent(newData)) {
+                        newData = SpawnNewBlock(newData, dragGridProps.Bin);
+                    }
+                    applyBlocksState(newData);
+                    setSelectedBlockId(null);
+                    toast.current?.show({
+                        severity: "info",
+                        summary: "Przeniesiono do kosza",
+                        detail: `Blok #${blockId} trafil do kosza po prawej.`,
+                        life: 1200,
+                    });
+                    return { x: getNewBlockPosition(dragGridProps.Bin).x, y: getNewBlockPosition(dragGridProps.Bin).y };
+                }
+            }
+        } catch (e) {
+            // defensive: ignore DOM errors
+        }
+
+        // Check if block is dropped in bin area below calendar (use center point)
+        if (isBinArea(centerX, centerY, dragGridProps)){
             let newData = removeBlock(blocksDataRef.current,blockId);
             if(!isNewBlockPresent(newData)){
                 newData = SpawnNewBlock(newData,dragGridProps.Bin);
@@ -348,6 +493,9 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
             });
             return {x: getNewBlockPosition(dragGridProps.Bin).x, y: getNewBlockPosition(dragGridProps.Bin).y};
         }
+
+        // Removed ambiguous "dropped on right side" heuristic; explicit element-rect or bottom bin used above.
+
         const targetIndex = getCellIndex(newX, newY + cellSize.y / 2, dragGridProps);
         const snappedCol = Math.max(0, Math.min(targetIndex.col, dragGridProps.cols - hourSpan));
         const currentBlock = blocksDataRef.current.find((block) => block.id === blockId);
@@ -485,7 +633,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                             <Button icon="pi pi-chevron-right" rounded outlined className="tt-nav-btn" aria-label="Następny tydzień" onClick={handleNextWeek} />
                         </div>
 
-                        <Button label="pobierz pdf" icon="pi pi-download" className="tt-download-btn" />
+                        <Button label="pobierz pdf" icon="pi pi-download" className="tt-download-btn" onClick={() => setShowPdfDialog(true)} />
                     </div>
                 )}
 
@@ -496,12 +644,76 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
             <aside ref={rightPanelRef} className="tt-right-panel">
             <EditBar
                 blockData={selectedBlock}
+                binData={responsiveGridProps.Bin}
                 onSave={handleEditBlock}
                 onHide={handleHideEditBar}
                 onDelete={handleDeleteRequest}
                 onRestoreFromDisk={handleRestoreBlockFromDisk}
+                onBinDrop={handleDeleteRequest}
             />
             </aside>
+
+            <Dialog
+                header="Eksportuj do PDF"
+                visible={showPdfDialog}
+                onHide={() => setShowPdfDialog(false)}
+                style={{ width: "400px" }}
+                modal
+            >
+                <div className="pdf-export-dialog">
+                    <div className="pdf-export-field">
+                        <label>Źródło danych:</label>
+                        <Dropdown
+                            value={pdfSource}
+                            options={[
+                                { label: "Bieżący tydzień", value: "week" },
+                                { label: "Tryb edycji (cały plan)", value: "edit" }
+                            ]}
+                            onChange={(e) => setPdfSource(e.value)}
+                            placeholder="Wybierz źródło"
+                        />
+                    </div>
+
+                    <div className="pdf-export-field">
+                        <label>Nagłówek:</label>
+                        <InputText
+                            value={pdfCaption}
+                            onChange={(e) => setPdfCaption(e.target.value)}
+                            placeholder="Wpisz nagłówek"
+                        />
+                    </div>
+
+                    <div className="pdf-export-field">
+                        <label>Tryb ciemny:</label>
+                        <InputSwitch
+                            checked={pdfDarkMode}
+                            onChange={(e) => setPdfDarkMode(e.value)}
+                        />
+                    </div>
+
+                    <div className="pdf-export-field">
+                        <label>Cały tydzień (7 dni):</label>
+                        <InputSwitch
+                            checked={pdfFullWeek}
+                            onChange={(e) => setPdfFullWeek(e.value)}
+                        />
+                    </div>
+
+                    <div className="pdf-export-actions">
+                        <Button
+                            label="Pobierz PDF"
+                            icon="pi pi-download"
+                            onClick={handleDownloadPdf}
+                        />
+                        <Button
+                            label="Anuluj"
+                            icon="pi pi-times"
+                            className="p-button-secondary"
+                            onClick={() => setShowPdfDialog(false)}
+                        />
+                    </div>
+                </div>
+            </Dialog>
         </div>
         </div>
     );

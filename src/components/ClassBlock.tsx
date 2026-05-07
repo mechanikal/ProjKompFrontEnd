@@ -6,7 +6,7 @@ import { motion, Variants } from "framer-motion";
 import { blockItemVariants, springTransition } from "../utils/MotionUtils";
 
 type BlockProps = {
-  handleDrop: (blockId: number, x: number, y: number, hourSpan: number, gridProps: GridProps) => {x: number, y: number};
+  handleDrop: (blockId: number, x: number, y: number, hourSpan: number, gridProps: GridProps, mouse?: {clientX: number, clientY: number}) => {x: number, y: number};
   handlePickup: (blockId: number, hourSpan: number) => void;
   blockData: BlockData;
   gridProps: GridProps;
@@ -95,7 +95,8 @@ export default function Block({
 
       setIsDragging(false);
       handlePickup(blockId, hourSpan);
-      setPosition(handleDrop(blockId, finalX, finalY, hourSpan, gridProps));
+      // Pass client coordinates so parent can test elementFromPoint reliably
+      setPosition(handleDrop(blockId, finalX, finalY, hourSpan, gridProps, { clientX: e.clientX, clientY: e.clientY }));
       
 
       document.removeEventListener("mousemove", handleMouseMove);
@@ -129,6 +130,7 @@ export default function Block({
         left: Math.round(position.x) + VISUAL_OFFSET_X - renderLeftOffset,
         top: Math.round(position.y) + VISUAL_OFFSET_Y - renderTopOffset,
         cursor: isEditModeEnabled ? (isDragging ? "grabbing" : "grab") : "default",
+        pointerEvents: isDragging ? "none" : "auto",
         borderRadius: 0,
         userSelect: "none",
         boxShadow: isDragging ? "var(--class-shadow-drag)" : "var(--class-shadow-rest)",

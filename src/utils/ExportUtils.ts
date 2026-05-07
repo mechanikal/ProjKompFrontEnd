@@ -1,5 +1,7 @@
 import { jsPDF } from "jspdf";
 import { BlockData, isOverlapping } from "./ClassBlockUtils";
+import "../assets/TitilliumWeb-Bold-normal.js";
+import "../assets/TitilliumWeb-Regular-normal.js";
 
 // A4 dimensions in points (landscape)
 var PAGE_WIDTH = 1000;
@@ -123,21 +125,21 @@ function drawBlock(
 
   const extraText = block.extraInfo;
   const extraHeight = doc.getTextDimensions(extraText, { maxWidth: width - blockPadding * 2 }).h;
-  const extraBlockHeight = Math.max(extraHeight, 16);
-  const postExtraCursorY = postNameCursorY + extraBlockHeight - fontSize
+  const extraBlockHeight = extraHeight;
+  const postExtraCursorY = postNameCursorY + extraBlockHeight - fontSize/2
 
   //background
   doc.setFillColor(blockBackgroundColor);
   doc.rect(x, y, width, postExtraCursorY - y,"F");
 
   // terms
-  doc.setFont("titillium web", "bold");
+  doc.setFont("TitilliumWeb-Bold");
   const darkBg = shadeColor(blockBackgroundColor, -12);
   doc.setFillColor(darkBg);
   doc.rect(x, preTermsCursorY, width, termsBlockHeight, "F");
   doc.setTextColor(fontColor);
   doc.text(termsText, x + blockPadding, preTermsCursorY + termsBlockHeight / 2 + termsHeight / 3, { maxWidth: width - blockPadding * 2 });
-  doc.setFont("titillium web", "normal");
+  doc.setFont("TitilliumWeb-Regular");
 
   // class name
   doc.setTextColor(fontColor);
@@ -250,8 +252,8 @@ function drawDays(
 
 
   const dayNames = fullWeek 
-    ? ["Poniedzialek", "Wtorek", "Sroda", "Czwartek", "Piatek", "Sobota", "Niedziela"]
-    : ["Poniedzialek", "Wtorek", "Sroda", "Czwartek", "Piatek"];
+    ? ["Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobota", "Niedziela"]
+    : ["Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek"];
   
   const numDays = fullWeek ? 7 : 5;
 
@@ -293,16 +295,17 @@ function drawRowsGrid(
   startX: number,
   startY: number,
   blocks: BlockData[],
-  fullWeek : boolean  = false,
+  fullWeek : boolean,
   caption:string
 ): { endY: number;} {
 
+  doc.setFont("TitilliumWeb-Bold");
   // Draw caption at top center
   doc.setFontSize(captionFontSize);
   doc.setTextColor(fontColor);
   doc.text(caption, PAGE_WIDTH / 2, MARGIN + 2 + captionFontSize, { align: "center" });
   startY += captionOffset
-  doc.setFont("titillium web", "normal");
+  doc.setFont("TitilliumWeb-Regular");
 
   // darker background for days
   doc.setFillColor(shadeColor(blockBackgroundColor, -12))

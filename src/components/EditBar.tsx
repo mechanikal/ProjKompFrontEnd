@@ -7,6 +7,7 @@ import { Slider } from "primereact/slider";
 import { InputTextarea } from "primereact/inputtextarea";
 import { BlockData } from "../utils/ClassBlockUtils";
 import { cloneBlockData, hasDraftChanges } from "../utils/EditBarUtils";
+import { BinData } from "../utils/TimeGridUtils";
 import { motion } from "framer-motion";
 import { springTransition } from "../utils/MotionUtils";
 
@@ -38,15 +39,20 @@ function buildRange(fromTerm: number, toTerm: number) {
 
 export type EditBarData = {
   blockData?: BlockData | null;
-    onSave: (updated: BlockData, options?: { silent?: boolean }) => void;
-    onHide: () => void;
-    onDelete: (blockId: number) => void;
-    onRestoreFromDisk: (blockId: number) => void;
+  binData?: BinData;
+  onSave: (updated: BlockData, options?: { silent?: boolean }) => void;
+  onHide: () => void;
+  onDelete: (blockId: number) => void;
+  onRestoreFromDisk: (blockId: number) => void;
+  onBinDrop?: (blockId: number) => void;
 };
 
 
-const EditBar: React.FC<EditBarData> = ({ blockData, onSave, onHide, onDelete, onRestoreFromDisk }) => {
+const EditBar: React.FC<EditBarData> = ({ blockData, binData, onSave, onHide, onDelete, onRestoreFromDisk, onBinDrop }) => {
   const [draft, setDraft] = useState<BlockData | null>(cloneBlockData(blockData));
+  const [isDragOverBin, setIsDragOverBin] = useState(false);
+  const binRef = useRef<HTMLDivElement | null>(null);
+  const onSaveRef = useRef(onSave);
   const defaultClassColor = typeof window === "undefined"
     ? "#5f9fd1"
     : getComputedStyle(document.documentElement).getPropertyValue("--class-color-default").trim() || "#5f9fd1";
@@ -59,13 +65,17 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onSave, onHide, onDelete, o
   }, [draft]);
 
   useEffect(() => {
+    onSaveRef.current = onSave;
+  }, [onSave]);
+
+  useEffect(() => {
     const previousId = previousIdRef.current;
     const nextId = blockData?.id ?? null;
     const previousBlock = previousBlockRef.current;
     const currentDraft = draftRef.current;
 
     if (previousId !== nextId && previousBlock && currentDraft && hasDraftChanges(previousBlock, currentDraft)) {
-      onSave(currentDraft, { silent: true });
+      onSaveRef.current(currentDraft, { silent: true });
     }
 
     const cloned = cloneBlockData(blockData);
@@ -73,7 +83,7 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onSave, onHide, onDelete, o
     draftRef.current = cloned;
     previousIdRef.current = nextId;
     previousBlockRef.current = cloned;
-  }, [blockData, onSave]);
+  }, [blockData]);
 
   const disabled = !draft;
 
@@ -151,9 +161,40 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onSave, onHide, onDelete, o
       ].filter(Boolean).join("\n")
     : "";
 
+  const handleBinDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOverBin(true);
+  };
+
+  const handleBinDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    if (e.target === binRef.current) {
+      setIsDragOverBin(false);
+    }
+  };
+
+  const handleBinDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOverBin(false);
+    if (draft && onBinDrop) {
+      onBinDrop(draft.id);
+    }
+  };
+
   return (
     <div className="tt-edit-panel">
-      <div className="tt-edit-header-line" />
+      <div className="editbar-top-row">
+        <Button
+          icon="pi pi-refresh"
+          rounded
+          outlined
+          className="tt-icon-btn tt-refresh-btn"
+          onClick={handleReplayDraft}
+          disabled={!draft}
+          aria-label="Przywroc dane z dysku"
+        />
+      </div>
       <div className="editbar-form">
         <div className="editbar-field">
           <label htmlFor="block-name">Nazwa przedmiotu</label>
@@ -171,8 +212,7 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onSave, onHide, onDelete, o
             id="block-extra"
             value={currentInfo}
             disabled
-            rows={2}
-            autoResize
+            rows={1}
           />
         </div>
 
@@ -255,28 +295,28 @@ const EditBar: React.FC<EditBarData> = ({ blockData, onSave, onHide, onDelete, o
           <label htmlFor="block-color">kolor</label>
           <div className="tt-color-controls">
             <ColorPicker
-                id="block-color"
-                format="hex"
-                value={(draft?.color ?? defaultClassColor).replace("#", "")}
-                disabled={disabled}
-                onChange={(e) => handleFieldChange("color", `#${String(e.value)}`)}
-              />
-            <Button
-              icon="pi pi-replay"
-              rounded
-              outlined
-              onClick={handleReplayDraft}
-              disabled={!draft}
-              aria-label="Przywroc dane z dysku"
+              id="block-color"
+              format="hex"
+              value={(draft?.color ?? defaultClassColor).replace("#", "")}
+              disabled={disabled}
+              onChange={(e) => handleFieldChange("color", `#${String(e.value)}`)}
             />
-            <Button
-              icon="pi pi-trash"
-              severity="danger"
-              outlined
-              disabled={!draft}
-              onClick={() => draft && onDelete(draft.id)}
-              aria-label="Usun blok"
-            />
+          </div>
+        </div>
+
+        <div className="editbar-bin-separator" />
+
+        <div className="editbar-bin-section">
+          <div
+            ref={binRef}
+            className={`editbar-bin ${isDragOverBin ? "is-drag-over" : ""}`.trim()}
+            onDragOver={handleBinDragOver}
+            onDragLeave={handleBinDragLeave}
+            onDrop={handleBinDrop}
+          >
+            <span className="editbar-bin-icon">🗑️</span>
+            <span className="editbar-bin-title">Kosz</span>
+            <span className="editbar-bin-subtitle">upuść blok, aby usunąć</span>
           </div>
         </div>
 
