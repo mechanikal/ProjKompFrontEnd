@@ -12,7 +12,7 @@ export type GroupInfo = {
 type GroupSelectorProps = {
   visible: boolean;
   onHide: () => void;
-  onGroupsSelected: (groupIds: string[]) => void;
+  onGroupsSelected: (groups: GroupInfo[]) => void;
   selectedGroupIds?: string[];
 };
 
@@ -100,7 +100,9 @@ const GroupSelector: React.FC<GroupSelectorProps> = ({
       return;
     }
 
-    onGroupsSelected(Array.from(selectedIds));
+    const selectedGroups = groups.filter((group) => selectedIds.has(group.id));
+
+    onGroupsSelected(selectedGroups);
     onHide();
   };
 
@@ -114,6 +116,7 @@ const GroupSelector: React.FC<GroupSelectorProps> = ({
         modal
         style={{ width: "90vw", maxWidth: "500px" }}
         className="group-selector-dialog"
+        maskClassName="group-selector-dialog-mask"
       >
         {isLoading ? (
           <div className="flex justify-content-center p-5">
@@ -139,7 +142,6 @@ const GroupSelector: React.FC<GroupSelectorProps> = ({
                   onClick={(e) => e.stopPropagation()}
                 />
                 <span className="flex-grow-1">{group.name}</span>
-                <span className="text-500 text-sm">ID: {group.id}</span>
               </div>
             ))}
           </div>

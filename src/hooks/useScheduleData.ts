@@ -19,11 +19,22 @@ const INITIAL_STATE: ScheduleDataState = {
   error: null,
 };
 
-export function useScheduleData(groupId: string, gridProps: GridProps) {
+export function useScheduleData(groupId: string | null, gridProps: GridProps) {
   const [state, setState] = useState<ScheduleDataState>(INITIAL_STATE);
   const initialGridPropsRef = useRef(gridProps);
 
   useEffect(() => {
+    if (!groupId) {
+      setState({
+        timetableName: INITIAL_STATE.timetableName,
+        classes: [],
+        terms: [],
+        isLoading: false,
+        error: null,
+      });
+      return;
+    }
+
     let cancelled = false;
 
     async function loadScheduleData() {

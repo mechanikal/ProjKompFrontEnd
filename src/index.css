@@ -208,6 +208,7 @@ font-weight: 500;
 
 .tt-plan-tags-row {
 margin-bottom: 10px;
+flex-wrap: wrap;
 }
 
 .tt-plan-tags-row .tt-refresh-btn.p-button {
@@ -217,6 +218,10 @@ margin-left: -5px;
 .tt-plan-chip {
 display: inline-flex;
 align-items: center;
+width: fit-content;
+max-width: 100%;
+flex: 0 0 auto;
+white-space: nowrap;
 height: 28px;
 padding: 0 12px;
 border-radius: 16px;
@@ -273,6 +278,7 @@ background: rgba(255, 255, 255, 0.2);
 
 .tt-chip-add-btn {
 margin-left: 2px;
+flex: 0 0 auto;
 }
 
 .tt-plan-row-spacer {
@@ -1030,6 +1036,78 @@ border-color: #ad1f1f;
   background: var(--surface-elevated);
   border-color: var(--border-soft);
   color: var(--text-main);
+}
+
+.group-selector-dialog.p-dialog {
+  border-radius: 14px;
+  box-shadow: var(--shadow-floating);
+  overflow: hidden;
+}
+
+.group-selector-dialog.p-dialog .p-dialog-header,
+.group-selector-dialog.p-dialog .p-dialog-content {
+  background: var(--surface-panel);
+  color: var(--text-main);
+}
+
+.group-selector-dialog.p-dialog .p-dialog-header {
+  border-bottom: 1px solid var(--border-soft);
+  padding: 1rem 1.25rem 0.85rem;
+}
+
+.group-selector-dialog.p-dialog .p-dialog-content {
+  padding: 1.15rem 1.25rem 1.25rem;
+}
+
+.group-selector-dialog.p-dialog .p-dialog-header .p-dialog-title {
+  color: var(--text-heading);
+  font-weight: 700;
+}
+
+.group-selector-dialog.p-dialog .p-dialog-header .p-dialog-header-icon {
+  color: var(--text-muted);
+  border-radius: 999px;
+}
+
+.group-selector-dialog.p-dialog .p-dialog-header .p-dialog-header-icon:hover {
+  background: var(--surface-hover);
+  color: var(--text-main);
+}
+
+.group-selector-dialog.p-dialog .p-dialog-header .p-dialog-header-icon:focus {
+  box-shadow: 0 0 0 2px var(--accent-focus);
+}
+
+.group-selector-dialog-mask.p-dialog-mask {
+  background: rgba(2, 6, 23, 0.66);
+}
+
+:root[data-theme="light"] .group-selector-dialog-mask.p-dialog-mask {
+  background: rgba(15, 23, 42, 0.32);
+}
+
+.group-selector-dialog .group-list {
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: var(--surface-elevated);
+}
+
+.group-selector-dialog .group-item {
+  background: transparent;
+  color: var(--text-main);
+  transition: var(--transition-theme), background-color 0.2s ease;
+}
+
+.group-selector-dialog .group-item:hover {
+  background: var(--surface-hover);
+}
+
+.group-selector-dialog .group-item + .group-item {
+  border-top: 1px solid var(--border-soft);
+}
+
+.group-selector-dialog .group-item input[type="checkbox"] {
+  accent-color: var(--accent-primary);
 }
 
 .pdf-export-actions .p-button-secondary:hover {

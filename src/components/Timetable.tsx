@@ -32,8 +32,9 @@ import {
 import { useScheduleData } from "../hooks/useScheduleData";
 import { filterClassesForWeek, mapClassesToWeekDisplayRows, refreshScheduledBlocks, buildActiveDates } from "../utils/ScheduleDataUtils";
 import { generatePdf } from "../utils/ExportUtils";
-import { getSelectedGroupIds, setSelectedGroupIds, getActiveGroupId, setActiveGroupId, addGroupToSelection, removeGroupFromSelection } from "../utils/GroupManager";
+import { getSelectedGroupIds, setSelectedGroupIds, getActiveGroupId, setActiveGroupId } from "../utils/GroupManager";
 import footerLogo from "../assets/logo-pl.png";
+import type { GroupInfo } from "./GroupSelector";
 
 type TimetableProps = {
   gridProps: GridProps;
@@ -92,7 +93,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     const toast = useRef<Toast>(null);
 
     // Grupy - state
-    const [selectedGroupIds, setSelectedGroupIdsState] = useState<string[]>([]);
+    const [selectedGroups, setSelectedGroupsState] = useState<GroupInfo[]>([]);
     const [activeGroupId, setActiveGroupIdState] = useState<string | null>(null);
     const [showGroupSelector, setShowGroupSelector] = useState(false);
 
@@ -103,23 +104,62 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     const blocksDataRef = useRef<BlockData[]>([]);
     const [boardContentWidth, setBoardContentWidth] = useState(gridWidth + 50);
     const responsiveGridWidth = Math.max(1, boardContentWidth - 50);
-    const { classes: scheduleClasses, terms: scheduleTerms, isLoading: scheduleIsLoading, error: scheduleError } = useScheduleData(activeGroupId || "105", gridProps);
+    const { classes: scheduleClasses, terms: scheduleTerms, isLoading: scheduleIsLoading, error: scheduleError } = useScheduleData(activeGroupId, gridProps);
     
+    const selectedGroupIds = useMemo(() => selectedGroups.map((group) => group.id), [selectedGroups]);
+
     // Załaduj grupy z localStorage przy mount
     useEffect(() => {
         const selectedIds = getSelectedGroupIds();
         const activeId = getActiveGroupId();
 
-        setSelectedGroupIdsState(selectedIds);
-        if (activeId && selectedIds.includes(activeId)) {
-            setActiveGroupIdState(activeId);
-        } else if (selectedIds.length > 0) {
-            // Jeśli aktywna grupa nie istnieje w wybranych, ustaw pierwszą
-            setActiveGroupIdState(selectedIds[0]);
-        } else {
-            // Jeśli nie ma wybranych grup, ustaw domyślnie 105 (WEEIA)
-            setActiveGroupIdState("105");
-        }
+        const loadSelectedGroupNames = async () => {
+            if (selectedIds.length === 0) {
+                setSelectedGroupsState([]);
+                setActiveGroupIdState(null);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/semester/faculties`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                const weeiaGroups = data?.WEEIA ?? {};
+
+                const resolvedGroups = selectedIds.map((groupId) => {
+                    const groupData = weeiaGroups?.[Number(groupId)];
+                    return {
+                        id: groupId,
+                        name: typeof groupData?.name === "string" ? groupData.name : `Grupa ${groupId}`,
+                    };
+                });
+
+                setSelectedGroupsState(resolvedGroups);
+
+                if (activeId && selectedIds.includes(activeId)) {
+                    setActiveGroupIdState(activeId);
+                } else {
+                    setActiveGroupIdState(selectedIds[0] ?? null);
+                }
+            } catch {
+                const fallbackGroups = selectedIds.map((groupId) => ({
+                    id: groupId,
+                    name: `Grupa ${groupId}`,
+                }));
+
+                setSelectedGroupsState(fallbackGroups);
+                if (activeId && selectedIds.includes(activeId)) {
+                    setActiveGroupIdState(activeId);
+                } else {
+                    setActiveGroupIdState(selectedIds[0] ?? null);
+                }
+            }
+        };
+
+        loadSelectedGroupNames();
     }, []);
     
     // PDF export dialog state
@@ -381,28 +421,40 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     };
 
     // Handlery dla grup
-    const handleAddGroups = (newGroupIds: string[]) => {
-        const updated = Array.from(new Set([...selectedGroupIds, ...newGroupIds]));
-        setSelectedGroupIdsState(updated);
-        setSelectedGroupIds(updated);
+    const handleAddGroups = (newGroups: GroupInfo[]) => {
+        const updated = Array.from(new Set([...selectedGroups.map((group) => group.id), ...newGroups.map((group) => group.id)]))
+            .map((groupId) => {
+                const existing = selectedGroups.find((group) => group.id === groupId);
+                if (existing) {
+                    return existing;
+                }
+
+                const incoming = newGroups.find((group) => group.id === groupId);
+                return incoming ?? { id: groupId, name: `Grupa ${groupId}` };
+            });
+
+        setSelectedGroupsState(updated);
+        setSelectedGroupIds(updated.map((group) => group.id));
 
         // Ustaw pierwszą nową grupę jako aktywną
-        if (newGroupIds.length > 0 && !activeGroupId) {
-            setActiveGroupIdState(newGroupIds[0]);
-            setActiveGroupId(newGroupIds[0]);
+        if (newGroups.length > 0 && !activeGroupId) {
+            setActiveGroupIdState(newGroups[0].id);
+            setActiveGroupId(newGroups[0].id);
         }
     };
 
     const handleRemoveGroup = (groupId: string) => {
-        const updated = selectedGroupIds.filter(id => id !== groupId);
-        setSelectedGroupIdsState(updated);
-        setSelectedGroupIds(updated);
+        const updated = selectedGroups.filter(group => group.id !== groupId);
+        setSelectedGroupsState(updated);
+        setSelectedGroupIds(updated.map((group) => group.id));
 
         // Jeśli usuwamy aktywną grupę, switch na inną
         if (activeGroupId === groupId) {
-            const nextActive = updated.length > 0 ? updated[0] : "105";
+            const nextActive = updated.length > 0 ? updated[0].id : null;
             setActiveGroupIdState(nextActive);
-            setActiveGroupId(nextActive);
+            if (nextActive) {
+                setActiveGroupId(nextActive);
+            }
         }
     };
 
@@ -609,20 +661,20 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
 
                 <div className="tt-plan-row tt-plan-tags-row">
                     <span>plany:</span>
-                    {selectedGroupIds.map((groupId) => (
+                    {selectedGroups.map((group) => (
                         <span 
-                            key={groupId} 
-                            className={`tt-plan-chip ${activeGroupId === groupId ? "tt-plan-chip--active" : ""}`}
-                            onClick={() => handleSwitchGroup(groupId)}
+                            key={group.id} 
+                            className={`tt-plan-chip ${activeGroupId === group.id ? "tt-plan-chip--active" : ""}`}
+                            onClick={() => handleSwitchGroup(group.id)}
                         >
-                            {groupId}
+                            {group.name}
                             <button 
                                 className="tt-chip-close-btn" 
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    handleRemoveGroup(groupId);
+                                    handleRemoveGroup(group.id);
                                 }}
-                                aria-label={`Usuń grupę ${groupId}`}
+                                aria-label={`Usuń grupę ${group.name}`}
                             >
                                 ×
                             </button>
