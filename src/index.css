@@ -138,6 +138,9 @@ flex: 0 0 252px;
 width: 252px;
 max-width: 252px;
 padding: 8px;
+display: flex;
+flex-direction: column;
+justify-content: flex-end;
 overflow-x: hidden;
 overflow-y: auto;
 position: relative;
@@ -547,11 +550,32 @@ margin-bottom: -7px;
 }
 
 .tt-edit-panel {
-height: 100%;
+height: auto;
+min-height: 0;
+width: 100%;
 background: var(--surface-main);
 border: 1px solid var(--border-soft);
-padding: 8px 8px 33px;
+padding: 8px;
 transition: var(--transition-theme);
+}
+
+.tt-right-panel-brand {
+display: flex;
+align-items: center;
+justify-content: center;
+flex: 1 1 auto;
+min-height: 0;
+padding: 12px 8px;
+}
+
+.tt-right-panel-brand-image {
+display: block;
+width: clamp(68px, 62%, 138px);
+max-height: min(16vh, 132px);
+height: auto;
+object-fit: contain;
+filter: var(--footer-logo-filter);
+opacity: 0.9;
 }
 
 .editbar-field {
@@ -987,6 +1011,16 @@ flex-direction: column;
 flex: 0 0 auto;
 max-width: 100%;
 width: 100%;
+justify-content: flex-start;
+}
+
+.tt-right-panel-brand {
+padding: 8px;
+}
+
+.tt-right-panel-brand-image {
+width: clamp(72px, 24vw, 124px);
+max-height: 90px;
 }
 
 .tt-surface--editbar-hidden .tt-right-panel {
