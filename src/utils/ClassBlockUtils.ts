@@ -29,7 +29,7 @@ export function sortBlocksByPlacement(blocksData: BlockData[]) {
     });
 }
 
-function isOverlapping(blockA: BlockData, blockB: BlockData) {
+export function isOverlapping(blockA: BlockData, blockB: BlockData) {
     if (blockA.row !== blockB.row || blockA.col == -1) {
         return false;
     }

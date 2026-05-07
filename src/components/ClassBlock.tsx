@@ -129,6 +129,7 @@ export default function Block({
         left: Math.round(position.x) + VISUAL_OFFSET_X - renderLeftOffset,
         top: Math.round(position.y) + VISUAL_OFFSET_Y - renderTopOffset,
         cursor: isEditModeEnabled ? (isDragging ? "grabbing" : "grab") : "default",
+        pointerEvents: isDragging ? "none" : "auto",
         borderRadius: 0,
         userSelect: "none",
         boxShadow: isDragging ? "var(--class-shadow-drag)" : "var(--class-shadow-rest)",

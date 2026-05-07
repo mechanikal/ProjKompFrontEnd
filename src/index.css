@@ -216,6 +216,10 @@ font-weight: 500;
 margin-bottom: 10px;
 }
 
+.tt-plan-tags-row .tt-refresh-btn.p-button {
+margin-left: -5px;
+}
+
 .tt-plan-chip {
 display: inline-flex;
 align-items: center;
@@ -265,7 +269,7 @@ transition: var(--transition-theme);
 width: 18px;
 height: 18px;
 border-radius: 50%;
-background: var(--text-on-accent);
+background: var(--text-muted);
 transform: translateX(0);
 transition: transform 180ms ease, background-color 180ms ease;
 }
@@ -277,6 +281,7 @@ border-color: var(--accent-primary);
 
 .tt-mail-toggle input:checked + .tt-mail-toggle-track .tt-mail-toggle-thumb {
 transform: translateX(20px);
+background: var(--text-on-accent);
 }
 
 .tt-icon-btn.p-button {
@@ -524,40 +529,17 @@ transform-origin: top;
   transform-origin: top;
 }
 
-.timetable-bin {
-border: 1px solid var(--border-soft);
-background: var(--surface-bin);
-display: flex;
-flex-direction: column;
-justify-content: center;
-align-items: center;
-gap: 2px;
-box-shadow: var(--shadow-soft), inset 0 0 0 1px var(--surface-inner-stroke);
-transition:
-left 240ms ease,
-top 240ms ease,
-width 240ms ease,
-height 240ms ease,
-background-color 0.3s ease,
-border-color 0.3s ease;
-will-change: left, top, width, height;
-}
-
-.timetable-bin-title {
-font-size: 16px;
-font-weight: 700;
-color: var(--text-heading);
-}
-
-.timetable-bin-subtitle {
-font-size: 11px;
-color: var(--text-muted);
-}
-
 .editbar-form {
 display: flex;
 flex-direction: column;
 gap: 0.75rem;
+}
+
+.editbar-top-row {
+display: flex;
+justify-content: flex-end;
+align-items: center;
+margin-bottom: -7px;
 }
 
 .tt-edit-panel {
@@ -566,13 +548,6 @@ background: var(--surface-main);
 border: 1px solid var(--border-soft);
 padding: 8px 8px 33px;
 transition: var(--transition-theme);
-}
-
-.tt-edit-header-line {
-height: 100%;
-max-height: 26px;
-border-left: 4px solid var(--border-soft);
-margin-bottom: 8px;
 }
 
 .editbar-field {
@@ -600,6 +575,18 @@ transition: var(--transition-theme);
 
 .tt-edit-panel .p-inputtextarea {
 resize: none;
+}
+
+.tt-edit-panel #block-extra {
+min-height: 1.95rem;
+height: 1.95rem;
+max-height: 1.95rem;
+padding-top: 0.425rem;
+padding-bottom: 0.425rem;
+line-height: 1.1rem;
+overflow: hidden;
+white-space: nowrap;
+text-overflow: ellipsis;
 }
 
 .tt-edit-panel .p-inputnumber-input {
@@ -701,23 +688,78 @@ align-items: center;
 
 .tt-color-controls {
 display: grid;
-grid-template-columns: repeat(3, minmax(0, 1fr));
+grid-template-columns: minmax(0, 1fr);
 align-items: center;
 gap: 8px;
 width: 100%;
-justify-items: center;
+justify-items: stretch;
 }
 
 .tt-color-controls .p-colorpicker {
 display: flex;
 align-items: center;
 justify-content: center;
-width: auto;
+width: 100%;
 }
 
 .tt-color-controls .p-button {
 width: 2rem;
 height: 2rem;
+}
+
+.editbar-bin-separator {
+height: 1px;
+background: var(--border-soft);
+margin: 12px 0;
+}
+
+.editbar-bin-section {
+display: flex;
+flex-direction: column;
+gap: 0.5rem;
+}
+
+.editbar-bin {
+position: relative;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 6px;
+padding: 16px 12px;
+background: var(--surface-input);
+border: 2px dashed var(--border-soft);
+border-radius: 8px;
+cursor: grab;
+transition: all 200ms ease;
+min-height: 80px;
+}
+
+.editbar-bin:hover {
+background: var(--surface-elevated);
+border-color: var(--accent-primary);
+box-shadow: 0 0 0 2px rgba(95, 157, 209, 0.1);
+}
+
+.editbar-bin.is-drag-over {
+background: var(--accent-chip-bg);
+border-color: var(--accent-primary);
+box-shadow: inset 0 0 0 1px var(--accent-primary), 0 0 8px rgba(95, 157, 209, 0.2);
+}
+
+.editbar-bin-icon {
+font-size: 24px;
+}
+
+.editbar-bin-title {
+font-size: 13px;
+font-weight: 600;
+color: var(--text-main);
+}
+
+.editbar-bin-subtitle {
+font-size: 11px;
+color: var(--text-muted);
 }
 
 .tt-new-block-btn.p-button {
@@ -764,8 +806,8 @@ color: var(--text-main);
 }
 
 .tt-edit-panel .p-colorpicker-preview {
-width: 42px;
-height: 22px;
+width: 100%;
+height: 2.25rem;
 border-radius: 6px;
 border-color: var(--border-soft);
 }
@@ -779,6 +821,106 @@ color: #fff;
 .tt-edit-panel .p-button.p-button-danger:hover {
 background: #ad1f1f;
 border-color: #ad1f1f;
+}
+
+/* PDF Export Dialog */
+.pdf-export-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.pdf-export-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pdf-export-field label {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+.pdf-export-field .p-dropdown,
+.pdf-export-field .p-inputtext {
+  width: 100%;
+  background: var(--surface-input);
+  border-color: var(--border-soft);
+  color: var(--text-main);
+}
+
+.pdf-export-field .p-dropdown:hover,
+.pdf-export-field .p-inputtext:hover {
+  border-color: var(--border-strong);
+}
+
+.pdf-export-field .p-dropdown:focus,
+.pdf-export-field .p-inputtext:focus {
+  border-color: var(--accent-focus);
+  box-shadow: 0 0 0 2px var(--accent-focus);
+}
+
+.pdf-export-field .p-inputswitch {
+  width: 44px;
+  height: 23px;
+}
+
+.pdf-export-field .p-inputswitch .p-inputswitch-slider {
+  background: var(--surface-input);
+  border: 1px solid var(--border-soft);
+  transition: var(--transition-theme);
+}
+
+.pdf-export-field .p-inputswitch .p-inputswitch-input:checked + .p-inputswitch-slider {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+.pdf-export-field .p-inputswitch .p-inputswitch-input:checked + .p-inputswitch-slider::before {
+  background: var(--text-on-accent);
+  transform: translateX(20px);
+}
+
+.pdf-export-field .p-inputswitch .p-inputswitch-slider::before {
+  width: 18px;
+  height: 18px;
+  top: 50%;
+  left: 2.5px;
+  margin-top: -9px;
+  background: var(--text-soft);
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  box-sizing: border-box;
+  position: absolute;
+}
+
+.pdf-export-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.pdf-export-actions .p-button {
+  flex: 1;
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+.pdf-export-actions .p-button:hover {
+  background: var(--accent-primary-strong);
+  border-color: var(--accent-primary-strong);
+}
+
+.pdf-export-actions .p-button-secondary {
+  background: var(--surface-elevated);
+  border-color: var(--border-soft);
+  color: var(--text-main);
+}
+
+.pdf-export-actions .p-button-secondary:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
 }
 
 @media (max-width: 1280px) {
