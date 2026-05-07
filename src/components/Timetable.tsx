@@ -76,7 +76,6 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     const [occupiedCells, setOccupiedCells] = useState<number[]>(Array(rows * cols).fill(0));
     const [selectedBlockId, setSelectedBlockId] = useState<number | null>(null);
     const [currentDate, setCurrentDate] = useState<Date>(getTodayDate());
-    const rightPanelRef = useRef<HTMLElement | null>(null);
     const originalBlocksRef = useRef<BlockData[]>([]);
     const toast = useRef<Toast>(null);
 
@@ -178,7 +177,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
             }
 
             if (
-                rightPanelRef.current?.contains(target) ||
+                target.closest(".tt-right-panel") ||
                 target.closest(".tt-class-block") ||
                 target.closest(".p-colorpicker-panel") ||
                 target.closest(".p-connected-overlay")
@@ -430,7 +429,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
         setSelectedBlockId(null);
     };
 
-    const handleBlockDrop = (blockId: number, newX: number, newY: number, hourSpan: number, dragGridProps: GridProps = responsiveGridProps, mouse?: {clientX: number, clientY: number}) => {
+    const handleBlockDrop = (blockId: number, newX: number, newY: number, hourSpan: number, dragGridProps: GridProps = responsiveGridProps) => {
         if (!isEditModeEnabled) {
             return { x: newX, y: newY };
         }
@@ -443,39 +442,6 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
         const blockHeight = Math.max(1, Math.round(cellSizeForDrag.y) + BLOCK_HEIGHT_ADJUST);
         const centerX = newX + blockWidth / 2;
         const centerY = newY + blockHeight / 2;
-
-        // Prefer explicit EditBar bin element (right panel) detection first so behaviour is consistent.
-        try {
-            const editBarBinEl = rightPanelRef.current?.querySelector('.editbar-bin') as HTMLElement | null;
-            if (editBarBinEl) {
-                // Prefer cursor client coordinates when available (more reliable for elementFromPoint)
-                const clientX = mouse?.clientX ?? (centerX - (window.scrollX || 0));
-                const clientY = mouse?.clientY ?? (centerY - (window.scrollY || 0));
-                const hovered = document.elementFromPoint(clientX, clientY) as HTMLElement | null;
-                // debug info to help trace failed detection
-                // eslint-disable-next-line no-console
-                console.debug("bin-detect", { clientX, clientY, hovered: hovered?.className });
-
-                if (hovered && editBarBinEl.contains(hovered)) {
-                    // unified deletion logic
-                    let newData = removeBlock(blocksDataRef.current, blockId);
-                    if (!isNewBlockPresent(newData)) {
-                        newData = SpawnNewBlock(newData, dragGridProps.Bin);
-                    }
-                    applyBlocksState(newData);
-                    setSelectedBlockId(null);
-                    toast.current?.show({
-                        severity: "info",
-                        summary: "Przeniesiono do kosza",
-                        detail: `Blok #${blockId} trafil do kosza po prawej.`,
-                        life: 1200,
-                    });
-                    return { x: getNewBlockPosition(dragGridProps.Bin).x, y: getNewBlockPosition(dragGridProps.Bin).y };
-                }
-            }
-        } catch (e) {
-            // defensive: ignore DOM errors
-        }
 
         // Check if block is dropped in bin area below calendar (use center point)
         if (isBinArea(centerX, centerY, dragGridProps)){
@@ -641,15 +607,12 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                 {scheduleError && <div className="tt-active-count">Błąd danych: {scheduleError}</div>}
             </section>
 
-            <aside ref={rightPanelRef} className="tt-right-panel">
+            <aside className="tt-right-panel">
             <EditBar
                 blockData={selectedBlock}
-                binData={responsiveGridProps.Bin}
                 onSave={handleEditBlock}
                 onHide={handleHideEditBar}
-                onDelete={handleDeleteRequest}
                 onRestoreFromDisk={handleRestoreBlockFromDisk}
-                onBinDrop={handleDeleteRequest}
             />
             </aside>
 

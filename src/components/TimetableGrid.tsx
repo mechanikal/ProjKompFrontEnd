@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import { GridProps } from "../utils/TimeGridUtils";
 import { motion } from "framer-motion";
 import { springTransition } from "../utils/MotionUtils";
@@ -12,6 +12,8 @@ type TimetableGridProps = GridProps & {
 };
 
 const TimetableGrid: React.FC<TimetableGridProps> = ({ rows, cols, gridHeight, gridWidth, rowHeights, StartPoint, Bin, showBin = true, dayLabels = [] }) => {
+  const [isDragOverBin, setIsDragOverBin] = useState(false);
+  const binRef = useRef<HTMLDivElement | null>(null);
   const cellSize = { x: gridWidth / cols, y: gridHeight / rows };
   const weekdays = ["PON", "WT", "ŚR", "CZW", "PT"];
   const formatTime = (hour: number, minute: number) => `${hour}:${String(minute).padStart(2, "0")}`;
@@ -33,6 +35,24 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({ rows, cols, gridHeight, g
   // CSS Grid template: first row = header, first col = days, rest = grid cells
   const gridTemplateRows = `${headerHeight}px ${dayRows.map((row) => `${row.heightPx}px`).join(" ")}`;
   const gridTemplateColumns = `50px repeat(${cols}, ${cellSize.x}px)`;
+
+  const handleBinDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragOverBin(true);
+  };
+
+  const handleBinDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+    if (event.target === binRef.current) {
+      setIsDragOverBin(false);
+    }
+  };
+
+  const handleBinDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragOverBin(false);
+  };
 
   return (
     <motion.div
@@ -101,7 +121,8 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({ rows, cols, gridHeight, g
         <motion.div
           layout
           transition={springTransition}
-          className="timetable-bin"
+          ref={binRef}
+          className={`editbar-bin ${isDragOverBin ? "is-drag-over" : ""}`.trim()}
           style={{
             position: "absolute",
             width: Bin.width,
@@ -109,9 +130,13 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({ rows, cols, gridHeight, g
             left: Bin.StartPoint.x,
             top: Bin.StartPoint.y,
           }}
+          onDragOver={handleBinDragOver}
+          onDragLeave={handleBinDragLeave}
+          onDrop={handleBinDrop}
         >
-          <span className="timetable-bin-title">KOSZ</span>
-          <span className="timetable-bin-subtitle">upusc blok, aby usunac</span>
+          <span className="editbar-bin-icon">🗑️</span>
+          <span className="editbar-bin-title">Kosz</span>
+          <span className="editbar-bin-subtitle">upuść blok, aby usunąć</span>
         </motion.div>
       )}
     </motion.div>

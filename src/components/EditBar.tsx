@@ -7,9 +7,6 @@ import { Slider } from "primereact/slider";
 import { InputTextarea } from "primereact/inputtextarea";
 import { BlockData } from "../utils/ClassBlockUtils";
 import { cloneBlockData, hasDraftChanges } from "../utils/EditBarUtils";
-import { BinData } from "../utils/TimeGridUtils";
-import { motion } from "framer-motion";
-import { springTransition } from "../utils/MotionUtils";
 
 const NUMBERED_TERMS = Array.from({ length: 15 }, (_, index) => index + 1);
 
@@ -39,19 +36,14 @@ function buildRange(fromTerm: number, toTerm: number) {
 
 export type EditBarData = {
   blockData?: BlockData | null;
-  binData?: BinData;
   onSave: (updated: BlockData, options?: { silent?: boolean }) => void;
   onHide: () => void;
-  onDelete: (blockId: number) => void;
   onRestoreFromDisk: (blockId: number) => void;
-  onBinDrop?: (blockId: number) => void;
 };
 
 
-const EditBar: React.FC<EditBarData> = ({ blockData, binData, onSave, onHide, onDelete, onRestoreFromDisk, onBinDrop }) => {
+const EditBar: React.FC<EditBarData> = ({ blockData, onSave, onHide, onRestoreFromDisk }) => {
   const [draft, setDraft] = useState<BlockData | null>(cloneBlockData(blockData));
-  const [isDragOverBin, setIsDragOverBin] = useState(false);
-  const binRef = useRef<HTMLDivElement | null>(null);
   const onSaveRef = useRef(onSave);
   const defaultClassColor = typeof window === "undefined"
     ? "#5f9fd1"
@@ -160,27 +152,6 @@ const EditBar: React.FC<EditBarData> = ({ blockData, binData, onSave, onHide, on
         draft.extraInfo ? `${draft.extraInfo}` : null,
       ].filter(Boolean).join("\n")
     : "";
-
-  const handleBinDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragOverBin(true);
-  };
-
-  const handleBinDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    if (e.target === binRef.current) {
-      setIsDragOverBin(false);
-    }
-  };
-
-  const handleBinDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragOverBin(false);
-    if (draft && onBinDrop) {
-      onBinDrop(draft.id);
-    }
-  };
 
   return (
     <div className="tt-edit-panel">
@@ -301,22 +272,6 @@ const EditBar: React.FC<EditBarData> = ({ blockData, binData, onSave, onHide, on
               disabled={disabled}
               onChange={(e) => handleFieldChange("color", `#${String(e.value)}`)}
             />
-          </div>
-        </div>
-
-        <div className="editbar-bin-separator" />
-
-        <div className="editbar-bin-section">
-          <div
-            ref={binRef}
-            className={`editbar-bin ${isDragOverBin ? "is-drag-over" : ""}`.trim()}
-            onDragOver={handleBinDragOver}
-            onDragLeave={handleBinDragLeave}
-            onDrop={handleBinDrop}
-          >
-            <span className="editbar-bin-icon">🗑️</span>
-            <span className="editbar-bin-title">Kosz</span>
-            <span className="editbar-bin-subtitle">upuść blok, aby usunąć</span>
           </div>
         </div>
 

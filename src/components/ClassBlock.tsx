@@ -6,7 +6,7 @@ import { motion, Variants } from "framer-motion";
 import { blockItemVariants, springTransition } from "../utils/MotionUtils";
 
 type BlockProps = {
-  handleDrop: (blockId: number, x: number, y: number, hourSpan: number, gridProps: GridProps, mouse?: {clientX: number, clientY: number}) => {x: number, y: number};
+  handleDrop: (blockId: number, x: number, y: number, hourSpan: number, gridProps: GridProps) => {x: number, y: number};
   handlePickup: (blockId: number, hourSpan: number) => void;
   blockData: BlockData;
   gridProps: GridProps;
@@ -95,8 +95,7 @@ export default function Block({
 
       setIsDragging(false);
       handlePickup(blockId, hourSpan);
-      // Pass client coordinates so parent can test elementFromPoint reliably
-      setPosition(handleDrop(blockId, finalX, finalY, hourSpan, gridProps, { clientX: e.clientX, clientY: e.clientY }));
+      setPosition(handleDrop(blockId, finalX, finalY, hourSpan, gridProps));
       
 
       document.removeEventListener("mousemove", handleMouseMove);

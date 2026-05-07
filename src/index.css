@@ -529,36 +529,6 @@ transform-origin: top;
   transform-origin: top;
 }
 
-.timetable-bin {
-border: 1px solid var(--border-soft);
-background: var(--surface-bin);
-display: flex;
-flex-direction: column;
-justify-content: center;
-align-items: center;
-gap: 2px;
-box-shadow: var(--shadow-soft), inset 0 0 0 1px var(--surface-inner-stroke);
-transition:
-left 240ms ease,
-top 240ms ease,
-width 240ms ease,
-height 240ms ease,
-background-color 0.3s ease,
-border-color 0.3s ease;
-will-change: left, top, width, height;
-}
-
-.timetable-bin-title {
-font-size: 16px;
-font-weight: 700;
-color: var(--text-heading);
-}
-
-.timetable-bin-subtitle {
-font-size: 11px;
-color: var(--text-muted);
-}
-
 .editbar-form {
 display: flex;
 flex-direction: column;
