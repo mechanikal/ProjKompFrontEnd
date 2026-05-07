@@ -22,7 +22,7 @@ type BlockProps = {
 };
 
 export default function Block({
-  blockData: { id: blockId, col, row, x, y, hourSpan, color, text },
+  blockData: { id: blockId, col, row, x, y, hourSpan, color, text, extraInfo },
   gridProps,
   handleDrop,
   handlePickup,
@@ -154,7 +154,7 @@ export default function Block({
       }}
       >
       <span>{text}</span>
-      <small className="tt-class-sub">Sample caption</small>
+        {extraInfo ? <small className="tt-class-sub">{extraInfo}</small> : null}
     </motion.div>
   );
 }

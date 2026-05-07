@@ -865,6 +865,7 @@ opacity: 0.7;
 font-size: 8px;
 line-height: 1.2;
 margin-top: 2px;
+white-space: pre-line;
 }
 
 .tt-nav-btn.p-button {
