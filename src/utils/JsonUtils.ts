@@ -21,6 +21,7 @@ export type JsonRoot = {
 
 const LOCAL_STORAGE_KEY = "projkomp.timetable.json";
 const DEFAULT_TIMETABLE_NAME = "Lokalny plan";
+const API_URL = import.meta.env.VITE_API_URL;
 
 function normalizeTerms(terms: unknown): number[] {
     if (!Array.isArray(terms)) {
@@ -100,8 +101,8 @@ export async function loadJsonRoot(): Promise<JsonRoot> {
         return localRoot;
     }
 
-    const response = await fetch("/6i-io1.json");
-    const loaded = await response.json();
+    const response = await fetch(`${API_URL}/semester/faculties`);
+    const loaded = (await response.json())?.WEEIA[105];
 
     const fromFile: JsonRoot = {
         name: typeof loaded?.name === "string" ? loaded.name : DEFAULT_TIMETABLE_NAME,
