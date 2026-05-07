@@ -157,15 +157,6 @@ will-change: flex-basis, width, max-width, opacity, transform;
 }
 
 .tt-surface--editbar-hidden .tt-right-panel {
-flex-basis: 0;
-width: 0;
-max-width: 0;
-padding-left: 0;
-padding-right: 0;
-padding-top: 0;
-padding-bottom: 0;
-opacity: 0;
-transform: translateX(18px);
 pointer-events: none;
 border-color: transparent;
 }

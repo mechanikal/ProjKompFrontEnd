@@ -1,7 +1,12 @@
 import React, { useRef, useState } from "react";
 import { GridProps } from "../utils/TimeGridUtils";
-import { motion } from "framer-motion";
-import { springTransition } from "../utils/MotionUtils";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  springTransition,
+  layoutTransitionConfig,
+  binPanelVariants,
+  PANEL_ANIMATE_PRESENCE_MODE,
+} from "../utils/MotionUtils";
 
 type TimetableGridProps = GridProps & {
   showBin?: boolean;
@@ -57,7 +62,7 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({ rows, cols, gridHeight, g
   return (
     <motion.div
       layout
-      transition={springTransition}
+      transition={layoutTransitionConfig}
       className="timetable-unified-container"
       style={{
         display: "grid",
@@ -118,26 +123,31 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({ rows, cols, gridHeight, g
       ))}
 
       {showBin && (
-        <motion.div
-          layout
-          transition={springTransition}
-          ref={binRef}
-          className={`editbar-bin ${isDragOverBin ? "is-drag-over" : ""}`.trim()}
-          style={{
-            position: "absolute",
-            width: Bin.width,
-            height: Bin.height,
-            left: Bin.StartPoint.x,
-            top: Bin.StartPoint.y,
-          }}
-          onDragOver={handleBinDragOver}
-          onDragLeave={handleBinDragLeave}
-          onDrop={handleBinDrop}
-        >
-          <span className="editbar-bin-icon">🗑️</span>
-          <span className="editbar-bin-title">Kosz</span>
-          <span className="editbar-bin-subtitle">upuść blok, aby usunąć</span>
-        </motion.div>
+        <AnimatePresence initial={false} mode={PANEL_ANIMATE_PRESENCE_MODE}>
+          <motion.div
+            layout
+            variants={binPanelVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            ref={binRef}
+            className={`editbar-bin ${isDragOverBin ? "is-drag-over" : ""}`.trim()}
+            style={{
+              position: "absolute",
+              width: Bin.width,
+              height: Bin.height,
+              left: Bin.StartPoint.x,
+              top: Bin.StartPoint.y,
+            }}
+            onDragOver={handleBinDragOver}
+            onDragLeave={handleBinDragLeave}
+            onDrop={handleBinDrop}
+          >
+            <span className="editbar-bin-icon">🗑️</span>
+            <span className="editbar-bin-title">Kosz</span>
+            <span className="editbar-bin-subtitle">upuść blok, aby usunąć</span>
+          </motion.div>
+        </AnimatePresence>
       )}
     </motion.div>
   );
