@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { BlockData } from "../utils/ClassBlockUtils";
 import { GridProps } from "../utils/TimeGridUtils";
-import { getClassDisplayColor, getReadableTextColor, ThemeMode } from "../utils/ThemeUtils";
+import { getClassDisplayColor, ThemeMode } from "../utils/ThemeUtils";
 import { motion, Variants } from "framer-motion";
 import { blockItemVariants, springTransition } from "../utils/MotionUtils";
 
@@ -35,7 +35,6 @@ export default function Block({
   const { gridWidth, gridHeight, cols, rows } = gridProps;
   const cellSize = { x: gridWidth /cols, y: gridHeight / rows };
   const classDisplayColor = getClassDisplayColor(color, theme);
-  const classTextColor = getReadableTextColor(classDisplayColor);
   
   const blockWidth = Math.max(1, Math.round(cellSize.x * hourSpan) + BLOCK_WIDTH_ADJUST);
   const blockHeight = Math.max(1, Math.round(cellSize.y) + BLOCK_HEIGHT_ADJUST);
@@ -121,7 +120,8 @@ export default function Block({
         width: blockWidth,
         height: blockHeight,
         backgroundColor: classDisplayColor,
-        color: classTextColor,
+        color: "#ffffff",
+        textShadow: "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000",
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
