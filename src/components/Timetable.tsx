@@ -18,10 +18,20 @@ import { Dropdown } from "primereact/dropdown";
 import { InputSwitch } from "primereact/inputswitch";
 import { ThemeMode } from "../utils/ThemeUtils";
 import { AnimatePresence, motion } from "framer-motion";
-import { blockItemVariants, blockListVariants, springTransition } from "../utils/MotionUtils";
+import { 
+  blockItemVariants, 
+  blockListVariants, 
+  springTransition,
+  layoutTransitionConfig,
+  rightPanelVariants,
+  binPanelVariants,
+  PANEL_ANIMATE_PRESENCE_MODE,
+  LIST_ANIMATE_PRESENCE_MODE,
+} from "../utils/MotionUtils";
 import { useScheduleData } from "../hooks/useScheduleData";
 import { filterClassesForWeek, mapClassesToWeekDisplayRows, refreshScheduledBlocks, buildActiveDates } from "../utils/ScheduleDataUtils";
 import { generatePdf } from "../utils/ExportUtils";
+import footerLogo from "../assets/logo-pl.png";
 
 type TimetableProps = {
   gridProps: GridProps;
@@ -114,8 +124,8 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
         Bin: {
             ...currentGridProps.Bin,
             StartPoint: {
-                x: 50 + responsiveGridWidth - currentGridProps.Bin.width,
-                y: currentGridProps.Bin.StartPoint.y,
+                x: 50 + responsiveGridWidth - currentGridProps.Bin.width - 11,
+                y: currentGridProps.Bin.StartPoint.y + 3,
             },
         },
     }), [currentGridProps, responsiveGridWidth]);
@@ -487,7 +497,11 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
         <ConfirmDialog />
         <Toast ref={toast} position="top-right" />
 
-        <div className={`tt-surface ${selectedBlockId !== null ? "tt-surface--editbar-open" : "tt-surface--editbar-hidden"}`}>
+        <motion.div 
+          layout 
+          transition={layoutTransitionConfig} 
+          className={`tt-surface ${selectedBlockId !== null ? "tt-surface--editbar-open" : "tt-surface--editbar-hidden"}`}
+        >
             <section className="tt-left-panel">
                 <div className="tt-prompt-row">
                     <span className="tt-prompt-robot" aria-hidden="true">
@@ -545,8 +559,8 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                 <motion.div
                     ref={boardRef}
                     layout
-                    transition={springTransition}
-                    className="tt-board"
+                    transition={layoutTransitionConfig}
+                    className={`tt-board ${isEditModeEnabled ? "tt-board--edit-mode" : ""}`}
                     style={{ position: "relative", width: "100%", minWidth: 0 }}
                 >
                     <TimetableGrid
@@ -566,7 +580,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                         initial={false}
                         animate="animate"
                     >
-                        <AnimatePresence mode="popLayout" initial={false}>
+                        <AnimatePresence mode={LIST_ANIMATE_PRESENCE_MODE} initial={false}>
                             {visibleBlocks.map((block) => {
                                 const isNewClassBlock = block.col === -1 && block.row === -1;
 
@@ -607,20 +621,37 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                 {scheduleError && <div className="tt-active-count">Błąd danych: {scheduleError}</div>}
             </section>
 
-            <aside className="tt-right-panel">
-            <EditBar
-                blockData={selectedBlock}
-                onSave={handleEditBlock}
-                onHide={handleHideEditBar}
-                onRestoreFromDisk={handleRestoreBlockFromDisk}
-            />
-            </aside>
+            <AnimatePresence initial={false} mode={PANEL_ANIMATE_PRESENCE_MODE}>
+                {selectedBlockId !== null && (
+                    <motion.aside
+                        layout
+                        variants={rightPanelVariants}
+                        initial="initial"
+                        animate="animate"
+                        exit="exit"
+                        style={{ originX: 1, originY: 0.5 }}
+                        className="tt-right-panel"
+                    >
+                        <div className="tt-right-panel-brand" aria-hidden="true">
+                            <img className="tt-right-panel-brand-image" src={footerLogo} alt="" />
+                        </div>
+                        <EditBar
+                            blockData={selectedBlock}
+                            onSave={handleEditBlock}
+                            onHide={handleHideEditBar}
+                            onRestoreFromDisk={handleRestoreBlockFromDisk}
+                        />
+                    </motion.aside>
+                )}
+            </AnimatePresence>
 
             <Dialog
                 header="Eksportuj do PDF"
                 visible={showPdfDialog}
                 onHide={() => setShowPdfDialog(false)}
                 style={{ width: "400px" }}
+                className="pdf-export-modal"
+                maskClassName="pdf-export-modal-mask"
                 modal
             >
                 <div className="pdf-export-dialog">
@@ -677,7 +708,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                     </div>
                 </div>
             </Dialog>
-        </div>
+        </motion.div>
         </div>
     );
 };

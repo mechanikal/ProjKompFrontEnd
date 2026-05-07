@@ -1,9 +1,15 @@
 import { useState, useEffect } from "react";
 import { BlockData } from "../utils/ClassBlockUtils";
 import { GridProps } from "../utils/TimeGridUtils";
-import { getClassDisplayColor, getReadableTextColor, ThemeMode } from "../utils/ThemeUtils";
+import { getClassDisplayColor, ThemeMode } from "../utils/ThemeUtils";
 import { motion, Variants } from "framer-motion";
-import { blockItemVariants, springTransition } from "../utils/MotionUtils";
+import { 
+  blockItemVariants, 
+  springTransitionConfig,
+  quickSpringTransitionConfig,
+  layoutTransitionConfig,
+  hoverTapScaleGentle,
+} from "../utils/MotionUtils";
 
 type BlockProps = {
   handleDrop: (blockId: number, x: number, y: number, hourSpan: number, gridProps: GridProps) => {x: number, y: number};
@@ -35,7 +41,6 @@ export default function Block({
   const { gridWidth, gridHeight, cols, rows } = gridProps;
   const cellSize = { x: gridWidth /cols, y: gridHeight / rows };
   const classDisplayColor = getClassDisplayColor(color, theme);
-  const classTextColor = getReadableTextColor(classDisplayColor);
   
   const blockWidth = Math.max(1, Math.round(cellSize.x * hourSpan) + BLOCK_WIDTH_ADJUST);
   const blockHeight = Math.max(1, Math.round(cellSize.y) + BLOCK_HEIGHT_ADJUST);
@@ -109,11 +114,13 @@ export default function Block({
   return (
     <motion.div
       layout="position"
-      transition={isDragging ? { duration: 0 } : springTransition}
+      transition={isDragging ? { duration: 0 } : layoutTransitionConfig}
       variants={variants ?? blockItemVariants}
       initial="initial"
       animate="animate"
       exit="exit"
+      whileHover={!isDragging && isEditModeEnabled ? { scale: 1.02 } : undefined}
+      whileTap={!isDragging && isEditModeEnabled ? { scale: 0.98 } : undefined}
       onMouseDown={handleMouseDown}
       className="tt-class-block"
       style={{
@@ -121,7 +128,8 @@ export default function Block({
         width: blockWidth,
         height: blockHeight,
         backgroundColor: classDisplayColor,
-        color: classTextColor,
+        color: "#ffffff",
+        textShadow: "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000",
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",

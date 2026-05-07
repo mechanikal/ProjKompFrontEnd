@@ -47,18 +47,6 @@ function rgbToHex(r: number, g: number, b: number) {
   return `#${clampChannel(r).toString(16).padStart(2, "0")}${clampChannel(g).toString(16).padStart(2, "0")}${clampChannel(b).toString(16).padStart(2, "0")}`;
 }
 
-function toLinear(channel: number) {
-  const normalized = channel / 255;
-  return normalized <= 0.03928
-    ? normalized / 12.92
-    : ((normalized + 0.055) / 1.055) ** 2.4;
-}
-
-function relativeLuminance(hexColor: string) {
-  const { r, g, b } = hexToRgb(hexColor);
-  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
-}
-
 export function getClassDisplayColor(color: string, theme: ThemeMode) {
   if (theme === "dark") {
     return color;
@@ -71,9 +59,4 @@ export function getClassDisplayColor(color: string, theme: ThemeMode) {
   const nextB = b + (255 - b) * mixWithWhite;
 
   return rgbToHex(nextR, nextG, nextB);
-}
-
-export function getReadableTextColor(backgroundColor: string) {
-  const luminance = relativeLuminance(backgroundColor);
-  return luminance > 0.58 ? "var(--text-strong)" : "var(--text-on-accent)";
 }
