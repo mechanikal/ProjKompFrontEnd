@@ -1,5 +1,6 @@
 import { BlockData } from "./ClassBlockUtils";
 import { GridProps, getCellPosition } from "./TimeGridUtils";
+import { getGroupDataFromStorage, saveGroupDataToStorage } from "./GroupManager";
 
 export type JsonData = {
     info: {
@@ -113,6 +114,51 @@ export async function loadJsonRoot(): Promise<JsonRoot> {
     return fromFile;
 }
 
+/**
+ * Ładuje dane grupy - najpierw localStorage, jeśli nie ma to pobiera z API
+ * @param groupId - ID grupy do pobrania
+ * @returns JsonRoot z danymi grupy
+ */
+export async function loadJsonRootForGroup(groupId: string): Promise<JsonRoot> {
+    // 1. Sprawdzić localStorage
+    const localRoot = getGroupDataFromStorage(groupId);
+    if (localRoot) {
+        return localRoot;
+    }
+
+    // 2. Jeśli nie ma w localStorage, pobierz z API
+    try {
+        const response = await fetch(`${API_URL}/semester/faculties`);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        const groupData = data?.WEEIA?.[Number(groupId)];
+
+        if (!groupData) {
+            throw new Error(`Grupa ${groupId} nie znaleziona`);
+        }
+
+        const fromApi: JsonRoot = {
+            name: typeof groupData?.name === "string" ? groupData.name : `Grupa ${groupId}`,
+            classes: Array.isArray(groupData?.classes) ? groupData.classes : []
+        };
+
+        // 3. Zapisz do localStorage dla przyszłości
+        saveGroupDataToStorage(groupId, fromApi);
+        return fromApi;
+    } catch (error) {
+        // Jeśli błąd, zwróć pusty plan
+        const fallback: JsonRoot = {
+            name: `Grupa ${groupId}`,
+            classes: []
+        };
+        return fallback;
+    }
+}
+
+
 export function saveJsonRoot(root: JsonRoot) {
     if (typeof window === "undefined") {
         return;
@@ -152,6 +198,40 @@ export function saveBlocksAsJson(blocks: BlockData[], timetableName = DEFAULT_TI
     });
 
     saveJsonRoot({
+        name: timetableName,
+        classes
+    });
+}
+
+/**
+ * Zapisuje bloki jako JSON dla konkretnej grupy do localStorage
+ * @param groupId - ID grupy
+ * @param blocks - Bloki do zapisania
+ * @param timetableName - Nazwa planu (opcjonalne)
+ */
+export function saveBlocksAsJsonForGroup(groupId: string, blocks: BlockData[], timetableName = DEFAULT_TIMETABLE_NAME) {
+    const placedBlocks = blocks.filter(block => block.col >= 0 && block.row >= 0);
+
+    const classes = placedBlocks.map((block) => {
+        const normalizedColor = Number.parseInt(block.color.replace("#", ""), 16);
+        const safeColor = Number.isNaN(normalizedColor) ? 0 : normalizedColor;
+        const fallbackReference = `block-${block.id}`;
+
+        return {
+            info: {
+                terms: [...block.terms, block.termMode],
+                extra: block.extraInfo,
+                name: block.text,
+            },
+            reference: block.reference || fallbackReference,
+            color: safeColor,
+            start: block.col + 8,
+            length: block.hourSpan,
+            day: block.row
+        } satisfies JsonData;
+    });
+
+    saveGroupDataToStorage(groupId, {
         name: timetableName,
         classes
     });

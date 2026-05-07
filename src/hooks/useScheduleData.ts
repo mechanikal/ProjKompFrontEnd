@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { GridProps } from "../utils/TimeGridUtils";
-import { jsonToBlockData, loadJsonRoot } from "../utils/JsonUtils";
+import { jsonToBlockData, loadJsonRootForGroup } from "../utils/JsonUtils";
 import { refreshScheduledBlocks, validateTermsData, ScheduledBlockData } from "../utils/ScheduleDataUtils";
 
 type ScheduleDataState = {
@@ -19,7 +19,7 @@ const INITIAL_STATE: ScheduleDataState = {
   error: null,
 };
 
-export function useScheduleData(gridProps: GridProps) {
+export function useScheduleData(groupId: string, gridProps: GridProps) {
   const [state, setState] = useState<ScheduleDataState>(INITIAL_STATE);
   const initialGridPropsRef = useRef(gridProps);
 
@@ -29,7 +29,7 @@ export function useScheduleData(gridProps: GridProps) {
     async function loadScheduleData() {
       try {
         const [jsonRootResponse, termsResponse] = await Promise.all([
-          loadJsonRoot(),
+          loadJsonRootForGroup(groupId),
           fetch("/terms.json"),
         ]);
 
@@ -80,7 +80,7 @@ export function useScheduleData(gridProps: GridProps) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [groupId]);
 
   return state;
 }

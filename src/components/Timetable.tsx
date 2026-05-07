@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import TimetableGrid from "./TimetableGrid";
 import ClassBlock from "./ClassBlock";
+import GroupSelector from "./GroupSelector";
 import { BlockData, getGridSnappedPosition, updateBlockPosition, removeBlock, recalculateBlockPostions, recalculateBlockSubrows, sortBlocksByPlacement } from "../utils/ClassBlockUtils";
 import { recalculateOccupiedCells, GridProps, isBinArea, getCellIndex, getCellPosition, getRowHeightsFromOccupiedCells } from "../utils/TimeGridUtils";
-import { clearSavedJsonRoot, saveBlocksAsJson } from "../utils/JsonUtils";
+import { clearSavedJsonRoot, saveBlocksAsJson, saveBlocksAsJsonForGroup } from "../utils/JsonUtils";
 import { getNewBlockPosition, SpawnNewBlock } from "../utils/NewBlockUtils";
 import { isNewBlockPresent } from "../utils/NewBlockUtils";
 import EditBar from "./EditBar";
@@ -31,6 +32,7 @@ import {
 import { useScheduleData } from "../hooks/useScheduleData";
 import { filterClassesForWeek, mapClassesToWeekDisplayRows, refreshScheduledBlocks, buildActiveDates } from "../utils/ScheduleDataUtils";
 import { generatePdf } from "../utils/ExportUtils";
+import { getSelectedGroupIds, setSelectedGroupIds, getActiveGroupId, setActiveGroupId, addGroupToSelection, removeGroupFromSelection } from "../utils/GroupManager";
 import footerLogo from "../assets/logo-pl.png";
 
 type TimetableProps = {
@@ -89,6 +91,11 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     const originalBlocksRef = useRef<BlockData[]>([]);
     const toast = useRef<Toast>(null);
 
+    // Grupy - state
+    const [selectedGroupIds, setSelectedGroupIdsState] = useState<string[]>([]);
+    const [activeGroupId, setActiveGroupIdState] = useState<string | null>(null);
+    const [showGroupSelector, setShowGroupSelector] = useState(false);
+
     const selectedBlock = blocksData.find(b => b.id === selectedBlockId);
     const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
     const [isEditModeEnabled, setIsEditModeEnabled] = useState(false);
@@ -96,7 +103,24 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     const blocksDataRef = useRef<BlockData[]>([]);
     const [boardContentWidth, setBoardContentWidth] = useState(gridWidth + 50);
     const responsiveGridWidth = Math.max(1, boardContentWidth - 50);
-    const { classes: scheduleClasses, terms: scheduleTerms, isLoading: scheduleIsLoading, error: scheduleError } = useScheduleData(gridProps);
+    const { classes: scheduleClasses, terms: scheduleTerms, isLoading: scheduleIsLoading, error: scheduleError } = useScheduleData(activeGroupId || "105", gridProps);
+    
+    // Załaduj grupy z localStorage przy mount
+    useEffect(() => {
+        const selectedIds = getSelectedGroupIds();
+        const activeId = getActiveGroupId();
+
+        setSelectedGroupIdsState(selectedIds);
+        if (activeId && selectedIds.includes(activeId)) {
+            setActiveGroupIdState(activeId);
+        } else if (selectedIds.length > 0) {
+            // Jeśli aktywna grupa nie istnieje w wybranych, ustaw pierwszą
+            setActiveGroupIdState(selectedIds[0]);
+        } else {
+            // Jeśli nie ma wybranych grup, ustaw domyślnie 105 (WEEIA)
+            setActiveGroupIdState("105");
+        }
+    }, []);
     
     // PDF export dialog state
     const [showPdfDialog, setShowPdfDialog] = useState(false);
@@ -280,7 +304,12 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
         setBlocksData(sortedBlocks);
 
         if (persist) {
-            saveBlocksAsJson(sortedBlocks);
+            // Zapisz dla aktywnej grupy
+            if (activeGroupId) {
+                saveBlocksAsJsonForGroup(activeGroupId, sortedBlocks);
+            } else {
+                saveBlocksAsJson(sortedBlocks);
+            }
         }
 
         return sortedBlocks;
@@ -349,6 +378,37 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
     const handleReloadData = () => {
         clearSavedJsonRoot();
         window.location.reload();
+    };
+
+    // Handlery dla grup
+    const handleAddGroups = (newGroupIds: string[]) => {
+        const updated = Array.from(new Set([...selectedGroupIds, ...newGroupIds]));
+        setSelectedGroupIdsState(updated);
+        setSelectedGroupIds(updated);
+
+        // Ustaw pierwszą nową grupę jako aktywną
+        if (newGroupIds.length > 0 && !activeGroupId) {
+            setActiveGroupIdState(newGroupIds[0]);
+            setActiveGroupId(newGroupIds[0]);
+        }
+    };
+
+    const handleRemoveGroup = (groupId: string) => {
+        const updated = selectedGroupIds.filter(id => id !== groupId);
+        setSelectedGroupIdsState(updated);
+        setSelectedGroupIds(updated);
+
+        // Jeśli usuwamy aktywną grupę, switch na inną
+        if (activeGroupId === groupId) {
+            const nextActive = updated.length > 0 ? updated[0] : "105";
+            setActiveGroupIdState(nextActive);
+            setActiveGroupId(nextActive);
+        }
+    };
+
+    const handleSwitchGroup = (groupId: string) => {
+        setActiveGroupIdState(groupId);
+        setActiveGroupId(groupId);
     };
 
     const handleDownloadPdf = async () => {
@@ -549,9 +609,32 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
 
                 <div className="tt-plan-row tt-plan-tags-row">
                     <span>plany:</span>
-                    <span className="tt-plan-chip">nazwa grupy</span>
-                    <span className="tt-plan-chip">nazwa grupy</span>
-                    <Button icon="pi pi-plus" text rounded className="tt-icon-btn tt-chip-add-btn" />
+                    {selectedGroupIds.map((groupId) => (
+                        <span 
+                            key={groupId} 
+                            className={`tt-plan-chip ${activeGroupId === groupId ? "tt-plan-chip--active" : ""}`}
+                            onClick={() => handleSwitchGroup(groupId)}
+                        >
+                            {groupId}
+                            <button 
+                                className="tt-chip-close-btn" 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRemoveGroup(groupId);
+                                }}
+                                aria-label={`Usuń grupę ${groupId}`}
+                            >
+                                ×
+                            </button>
+                        </span>
+                    ))}
+                    <Button 
+                        icon="pi pi-plus" 
+                        text 
+                        rounded 
+                        className="tt-icon-btn tt-chip-add-btn" 
+                        onClick={() => setShowGroupSelector(true)}
+                    />
                     <div className="tt-plan-row-spacer" />
                     <Button icon="pi pi-refresh" rounded outlined className="tt-icon-btn tt-refresh-btn" onClick={handleReloadData} />
                 </div>
@@ -644,6 +727,13 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                     </motion.aside>
                 )}
             </AnimatePresence>
+
+            <GroupSelector
+                visible={showGroupSelector}
+                onHide={() => setShowGroupSelector(false)}
+                onGroupsSelected={handleAddGroups}
+                selectedGroupIds={selectedGroupIds}
+            />
 
             <Dialog
                 header="Eksportuj do PDF"

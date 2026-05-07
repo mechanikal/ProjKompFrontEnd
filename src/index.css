@@ -225,6 +225,50 @@ border: 1px solid var(--accent-chip-border);
 color: var(--text-main);
 font-size: 12px;
 font-weight: 600;
+cursor: pointer;
+transition: all 0.2s ease;
+gap: 6px;
+}
+
+.tt-plan-chip:hover {
+background: var(--accent-chip-hover-bg, var(--accent-chip-bg));
+border-color: var(--accent-chip-border);
+opacity: 0.8;
+}
+
+.tt-plan-chip--active {
+background: var(--primary-color, #0066cc);
+border-color: var(--primary-color, #0066cc);
+color: white;
+}
+
+.tt-plan-chip--active:hover {
+opacity: 0.9;
+}
+
+.tt-chip-close-btn {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+width: 16px;
+height: 16px;
+padding: 0;
+border: none;
+background: transparent;
+color: currentColor;
+font-size: 14px;
+cursor: pointer;
+margin-left: 4px;
+transition: all 0.2s ease;
+border-radius: 3px;
+}
+
+.tt-chip-close-btn:hover {
+background: rgba(0, 0, 0, 0.1);
+}
+
+.tt-plan-chip--active .tt-chip-close-btn:hover {
+background: rgba(255, 255, 255, 0.2);
 }
 
 .tt-chip-add-btn {
