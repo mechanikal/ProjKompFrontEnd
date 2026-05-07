@@ -454,6 +454,10 @@ min-width: 0;
 will-change: width;
 }
 
+.tt-board--edit-mode {
+  padding-bottom: 95px;
+}
+
 
 .tt-block-layer {
   position: absolute;
@@ -824,6 +828,57 @@ border-color: #ad1f1f;
 }
 
 /* PDF Export Dialog */
+.pdf-export-modal.p-dialog {
+  background: var(--surface-panel);
+  color: var(--text-main);
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  box-shadow: var(--shadow-floating);
+}
+
+.pdf-export-modal.p-dialog .p-dialog-header,
+.pdf-export-modal.p-dialog .p-dialog-content {
+  background: var(--surface-panel);
+  color: var(--text-main);
+}
+
+.pdf-export-modal.p-dialog .p-dialog-header {
+  border-bottom: 1px solid var(--border-soft);
+  padding: 1rem 1.25rem 0.85rem;
+}
+
+.pdf-export-modal.p-dialog .p-dialog-content {
+  padding: 1.15rem 1.25rem 1.25rem;
+}
+
+.pdf-export-modal.p-dialog .p-dialog-header .p-dialog-title {
+  color: var(--text-heading);
+  font-weight: 700;
+}
+
+.pdf-export-modal.p-dialog .p-dialog-header .p-dialog-header-icon {
+  color: var(--text-muted);
+  border-radius: 999px;
+}
+
+.pdf-export-modal.p-dialog .p-dialog-header .p-dialog-header-icon:hover {
+  background: var(--surface-hover);
+  color: var(--text-main);
+}
+
+.pdf-export-modal.p-dialog .p-dialog-header .p-dialog-header-icon:focus {
+  box-shadow: 0 0 0 2px var(--accent-focus);
+}
+
+.pdf-export-modal-mask.p-dialog-mask {
+  background: rgba(2, 6, 23, 0.66);
+}
+
+:root[data-theme="light"] .pdf-export-modal-mask.p-dialog-mask,
+:root[data-theme="light"] .pdf-export-modal-mask.p-dialog-mask {
+  background: rgba(15, 23, 42, 0.32);
+}
+
 .pdf-export-dialog {
   display: flex;
   flex-direction: column;

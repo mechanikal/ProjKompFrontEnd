@@ -114,8 +114,8 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
         Bin: {
             ...currentGridProps.Bin,
             StartPoint: {
-                x: 50 + responsiveGridWidth - currentGridProps.Bin.width,
-                y: currentGridProps.Bin.StartPoint.y,
+                x: 50 + responsiveGridWidth - currentGridProps.Bin.width - 11,
+                y: currentGridProps.Bin.StartPoint.y + 3,
             },
         },
     }), [currentGridProps, responsiveGridWidth]);
@@ -546,7 +546,7 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                     ref={boardRef}
                     layout
                     transition={springTransition}
-                    className="tt-board"
+                    className={`tt-board ${isEditModeEnabled ? "tt-board--edit-mode" : ""}`}
                     style={{ position: "relative", width: "100%", minWidth: 0 }}
                 >
                     <TimetableGrid
@@ -621,6 +621,8 @@ const Timetable: React.FC<TimetableProps> = ({ gridProps, theme, onEditBarVisibi
                 visible={showPdfDialog}
                 onHide={() => setShowPdfDialog(false)}
                 style={{ width: "400px" }}
+                className="pdf-export-modal"
+                maskClassName="pdf-export-modal-mask"
                 modal
             >
                 <div className="pdf-export-dialog">
